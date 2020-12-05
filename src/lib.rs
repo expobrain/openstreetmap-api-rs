@@ -1,37 +1,27 @@
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate serde_derive;
 
 mod errors;
+mod types;
+mod versions;
 
-use errors::Error;
-use reqwest::header::CONTENT_TYPE;
+use types::Credentials;
+
+use errors::OpenstreetmapError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
-use std::fmt;
+use serde_xml_rs::from_reader;
 
-#[derive(Debug)]
-enum ApiVersion {
-    V6,
-}
+use versions::Versions;
 
-impl fmt::Display for ApiVersion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = match self {
-            Self::V6 => "0.6",
-        };
+pub const DEFAULT_VERSION: &str = "0.6";
 
-        write!(f, "{}", value)
-    }
-}
-#[derive(Debug)]
-pub enum Credentials {
-    Basic(String, String), // Username, password
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Openstreetmap {
     pub host: String,
-    api_version: ApiVersion,
+    api_version: String,
     credentials: Credentials,
     client: reqwest::Client,
 }
@@ -43,7 +33,7 @@ impl Openstreetmap {
     {
         Openstreetmap {
             host: host.into(),
-            api_version: ApiVersion::V6,
+            api_version: DEFAULT_VERSION.into(),
             credentials,
             client: reqwest::Client::new(),
         }
@@ -56,10 +46,14 @@ impl Openstreetmap {
     {
         Openstreetmap {
             host: host.into(),
-            api_version: ApiVersion::V6,
+            api_version: DEFAULT_VERSION.into(),
             credentials,
             client,
         }
+    }
+
+    pub async fn versions(&self) -> Result<Vec<String>, OpenstreetmapError> {
+        Ok(Versions::new(self).get().await?)
     }
 
     async fn request<D>(
@@ -67,35 +61,33 @@ impl Openstreetmap {
         method: reqwest::Method,
         endpoint: &str,
         body: Option<Vec<u8>>,
-    ) -> Result<D, Error>
+    ) -> Result<D, OpenstreetmapError>
     where
         D: DeserializeOwned,
     {
-        let url = format!("{}/api/{}/{}", self.host, self.api_version, endpoint);
+        let url = format!("{}/api/{}", self.host, endpoint);
         debug!("url -> {:?}", url);
 
         let req = self.client.request(method, &url);
         let mut builder = match self.credentials {
-            Credentials::Basic(ref user, ref pass) => req
-                .basic_auth(user, Some(pass))
-                .header(CONTENT_TYPE, "application/json"),
+            Credentials::Basic(ref user, ref pass) => req.basic_auth(user, Some(pass)),
         };
 
         if let Some(payload) = body {
             builder = builder.body(payload)
         }
 
-        let res = builder.send().await.map_err(|e| Error::Http(e))?;
+        let res = builder.send().await?;
 
         match res.status() {
-            StatusCode::UNAUTHORIZED => Err(Error::Unauthorized),
-            StatusCode::METHOD_NOT_ALLOWED => Err(Error::MethodNotAllowed),
-            StatusCode::NOT_FOUND => Err(Error::NotFound),
-            client_err if client_err.is_client_error() => Err(Error::Client {
+            StatusCode::UNAUTHORIZED => Err(OpenstreetmapError::Unauthorized),
+            StatusCode::METHOD_NOT_ALLOWED => Err(OpenstreetmapError::MethodNotAllowed),
+            StatusCode::NOT_FOUND => Err(OpenstreetmapError::NotFound),
+            client_err if client_err.is_client_error() => Err(OpenstreetmapError::Client {
                 code: res.status(),
-                error: res.text().await.map_err(|e| Error::Http(e))?,
+                error: res.text().await?,
             }),
-            _ => Ok(res.json::<D>().await.map_err(|e| Error::Http(e))?),
+            _ => Ok(from_reader(res.text().await?.as_bytes())?),
         }
     }
 }

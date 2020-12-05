@@ -1,12 +1,12 @@
-use reqwest;
-// use serde_json;
+use std::error;
+use std::fmt;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum OpenstreetmapError {
     /// error associated with http request
     Http(reqwest::Error),
     /// error associated with parsing or serializing
-    // Serde(serde_json::error::Error),
+    Serde(serde_xml_rs::Error),
     /// client request errors
     Client {
         code: reqwest::StatusCode,
@@ -18,4 +18,24 @@ pub enum Error {
     MethodNotAllowed,
     /// Page not found
     NotFound,
+}
+
+impl error::Error for OpenstreetmapError {}
+
+impl fmt::Display for OpenstreetmapError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SuperError is here!")
+    }
+}
+
+impl From<reqwest::Error> for OpenstreetmapError {
+    fn from(error: reqwest::Error) -> Self {
+        OpenstreetmapError::Http(error)
+    }
+}
+
+impl From<serde_xml_rs::Error> for OpenstreetmapError {
+    fn from(error: serde_xml_rs::Error) -> Self {
+        OpenstreetmapError::Serde(error)
+    }
 }
