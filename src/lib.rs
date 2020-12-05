@@ -5,16 +5,12 @@ extern crate serde_derive;
 
 mod errors;
 mod types;
-mod versions;
-
-use types::Credentials;
+mod api;
 
 use errors::OpenstreetmapError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde_xml_rs::from_reader;
-
-use versions::Versions;
 
 pub const DEFAULT_VERSION: &str = "0.6";
 
@@ -22,7 +18,7 @@ pub const DEFAULT_VERSION: &str = "0.6";
 pub struct Openstreetmap {
     pub host: String,
     api_version: String,
-    credentials: Credentials,
+    credentials: types::Credentials,
     client: reqwest::Client,
 }
 
@@ -53,7 +49,7 @@ impl Openstreetmap {
     }
 
     pub async fn versions(&self) -> Result<Vec<String>, OpenstreetmapError> {
-        Ok(Versions::new(self).get().await?)
+        Ok(api::versions::Versions::new(self).get().await?)
     }
 
     async fn request<D>(
