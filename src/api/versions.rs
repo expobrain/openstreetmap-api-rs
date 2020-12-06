@@ -9,7 +9,6 @@ struct Version {
 
 #[derive(Debug, Deserialize)]
 struct Osm {
-    // pub name: String,
     #[serde(rename = "api", default)]
     pub versions: Vec<Version>,
 }
@@ -41,7 +40,7 @@ impl Versions {
 
 #[cfg(test)]
 mod tests {
-    use crate::Credentials;
+    use crate::types::Credentials;
     use crate::Openstreetmap;
 
     use lazy_static::lazy_static;

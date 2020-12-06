@@ -3,9 +3,9 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
+mod api;
 mod errors;
 mod types;
-mod api;
 
 use errors::OpenstreetmapError;
 use reqwest::StatusCode;
@@ -23,7 +23,7 @@ pub struct Openstreetmap {
 }
 
 impl Openstreetmap {
-    pub fn new<T>(host: T, credentials: Credentials) -> Self
+    pub fn new<T>(host: T, credentials: types::Credentials) -> Self
     where
         T: Into<String>,
     {
@@ -36,7 +36,7 @@ impl Openstreetmap {
     }
 
     /// creates a new instance of a Openstreetmap client using a specified reqwest client
-    pub fn from_client<H>(host: H, credentials: Credentials, client: reqwest::Client) -> Self
+    pub fn from_client<H>(host: H, credentials: types::Credentials, client: reqwest::Client) -> Self
     where
         H: Into<String>,
     {
@@ -50,6 +50,10 @@ impl Openstreetmap {
 
     pub async fn versions(&self) -> Result<Vec<String>, OpenstreetmapError> {
         Ok(api::versions::Versions::new(self).get().await?)
+    }
+
+    pub async fn capabilities(&self) -> Result<types::CapabilitiesAndPolicy, OpenstreetmapError> {
+        Ok(api::capabilities::Capabilities::new(self).get().await?)
     }
 
     async fn request<D>(
@@ -66,7 +70,7 @@ impl Openstreetmap {
 
         let req = self.client.request(method, &url);
         let mut builder = match self.credentials {
-            Credentials::Basic(ref user, ref pass) => req.basic_auth(user, Some(pass)),
+            types::Credentials::Basic(ref user, ref pass) => req.basic_auth(user, Some(pass)),
         };
 
         if let Some(payload) = body {
