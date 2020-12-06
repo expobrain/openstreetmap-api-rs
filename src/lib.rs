@@ -11,6 +11,7 @@ use errors::OpenstreetmapError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde_xml_rs::from_reader;
+use url::Url;
 
 pub const DEFAULT_VERSION: &str = "0.6";
 
@@ -59,16 +60,25 @@ impl Openstreetmap {
     async fn request<D>(
         &self,
         method: reqwest::Method,
+        version: Option<types::ApiVersion>,
         endpoint: &str,
         body: Option<Vec<u8>>,
     ) -> Result<D, OpenstreetmapError>
     where
         D: DeserializeOwned,
     {
-        let url = format!("{}/api/{}", self.host, endpoint);
+        let mut url = Url::parse(&self.host)?.join("api/")?;
+
+        if version.is_some() {
+            let version_path = format!("{}/", version.unwrap().to_string());
+
+            url = url.join(&version_path)?;
+        }
+
+        url = url.join(endpoint)?;
         debug!("url -> {:?}", url);
 
-        let req = self.client.request(method, &url);
+        let req = self.client.request(method, url);
         let mut builder = match self.credentials {
             types::Credentials::Basic(ref user, ref pass) => req.basic_auth(user, Some(pass)),
         };

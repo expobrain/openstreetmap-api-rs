@@ -95,7 +95,7 @@ impl Capabilities {
     pub async fn get(&self) -> Result<types::CapabilitiesAndPolicy, OpenstreetmapError> {
         let capabilities_and_policies: types::CapabilitiesAndPolicy = self
             .client
-            .request::<Osm>(reqwest::Method::GET, "capabilities", None)
+            .request::<Osm>(reqwest::Method::GET, None, "capabilities", None)
             .await?
             .into();
 

@@ -27,7 +27,7 @@ impl Versions {
     pub async fn get(&self) -> Result<Vec<String>, OpenstreetmapError> {
         let versions = self
             .client
-            .request::<Osm>(reqwest::Method::GET, "versions", None)
+            .request::<Osm>(reqwest::Method::GET, None, "versions", None)
             .await?
             .versions
             .into_iter()

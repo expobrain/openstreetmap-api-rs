@@ -1,21 +1,30 @@
 use std::error;
 use std::fmt;
+use url;
 
 #[derive(Debug)]
 pub enum OpenstreetmapError {
     /// error associated with http request
     Http(reqwest::Error),
+
+    /// error caused by invalid URLs
+    Url(url::ParseError),
+
     /// error associated with parsing or serializing
     Serde(serde_xml_rs::Error),
+
     /// client request errors
     Client {
         code: reqwest::StatusCode,
         error: String,
     },
+
     /// invalid credentials
     Unauthorized,
+
     /// HTTP method is not allowed
     MethodNotAllowed,
+
     /// Page not found
     NotFound,
 }
@@ -31,6 +40,12 @@ impl fmt::Display for OpenstreetmapError {
 impl From<reqwest::Error> for OpenstreetmapError {
     fn from(error: reqwest::Error) -> Self {
         OpenstreetmapError::Http(error)
+    }
+}
+
+impl From<url::ParseError> for OpenstreetmapError {
+    fn from(error: url::ParseError) -> Self {
+        OpenstreetmapError::Url(error)
     }
 }
 
