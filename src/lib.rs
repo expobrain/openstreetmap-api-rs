@@ -62,6 +62,10 @@ impl Openstreetmap {
         Ok(api::map::Map::new(self).get(bbox).await?)
     }
 
+    pub async fn permissions(&self) -> Result<Vec<types::Permission>, OpenstreetmapError> {
+        Ok(api::permissions::Permissions::new(self).get().await?)
+    }
+
     async fn request<D>(
         &self,
         method: reqwest::Method,

@@ -130,3 +130,8 @@ pub struct Map {
     pub ways: Vec<Way>,
     pub relations: Vec<Relation>,
 }
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct Permission {
+    pub name: String,
+}
