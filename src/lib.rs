@@ -10,6 +10,7 @@ mod types;
 use errors::OpenstreetmapError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
+
 use serde_xml_rs::from_reader;
 use url::Url;
 
@@ -57,10 +58,14 @@ impl Openstreetmap {
         Ok(api::capabilities::Capabilities::new(self).get().await?)
     }
 
+    pub async fn map(&self, bbox: &types::BoundingBox) -> Result<types::Map, OpenstreetmapError> {
+        Ok(api::map::Map::new(self).get(bbox).await?)
+    }
+
     async fn request<D>(
         &self,
         method: reqwest::Method,
-        version: Option<types::ApiVersion>,
+        version: Option<&str>,
         endpoint: &str,
         body: Option<Vec<u8>>,
     ) -> Result<D, OpenstreetmapError>
