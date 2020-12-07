@@ -1,6 +1,5 @@
 use std::error;
 use std::fmt;
-use url;
 
 #[derive(Debug)]
 pub enum OpenstreetmapError {
