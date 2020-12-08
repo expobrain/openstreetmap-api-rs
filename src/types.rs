@@ -57,10 +57,19 @@ pub struct BoundingBox {
     pub top: f64,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 pub struct Tag {
     pub k: String,
     pub v: String,
+}
+
+impl Tag {
+    pub fn new(k: &str, v: &str) -> Self {
+        Tag {
+            k: k.into(),
+            v: v.into(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -134,4 +143,73 @@ pub struct Map {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Permission {
     pub name: String,
+}
+
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+#[serde(rename = "changeset")]
+pub struct Changeset {
+    version: String,
+    generator: String,
+    #[serde(rename = "tag", default)]
+    tags: Vec<Tag>,
+}
+
+impl Changeset {
+    pub fn new(version: &str, generator: &str, tags: Vec<Tag>) -> Self {
+        Changeset {
+            version: version.into(),
+            generator: generator.into(),
+            tags,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
+    use quick_xml::se::to_string;
+
+    #[test]
+    fn test_changeset_serialize_xml() {
+        /*
+        GIVEN a Changeset instance
+        WHEN serialised
+        THEN matches the expectation
+        */
+        // GIVEN
+        let changeset = Changeset::new(
+            "0.6",
+            "iD",
+            vec![
+                Tag::new("comment", "aaa"),
+                Tag::new("created_by", "iD 2.19.5"),
+                Tag::new("host", "https://master.apis.dev.openstreetmap.org/edit"),
+                Tag::new("locale", "en-GB"),
+                Tag::new("imagery_used", "Bing aerial imagery"),
+                Tag::new("changesets_count", "1"),
+            ],
+        );
+
+        // WHEN
+        let actual = to_string(&changeset).unwrap();
+
+        // THEN
+        let expected = r#"
+            <changeset version="0.6" generator="iD">
+                <tag k="comment" v="aaa"/>
+                <tag k="created_by" v="iD 2.19.5"/>
+                <tag k="host" v="https://master.apis.dev.openstreetmap.org/edit"/>
+                <tag k="locale" v="en-GB"/>
+                <tag k="imagery_used" v="Bing aerial imagery"/>
+                <tag k="changesets_count" v="1"/>
+            </changeset>
+        "#
+        .split('\n')
+        .map(|s| s.trim().into())
+        .collect::<Vec<String>>()
+        .join("");
+
+        assert_eq!(actual, expected);
+    }
 }
