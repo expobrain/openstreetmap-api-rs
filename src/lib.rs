@@ -10,8 +10,10 @@ mod types;
 use errors::OpenstreetmapError;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
+use serde::ser::Serialize;
 
 use serde_xml_rs::from_reader;
+use serde_xml_rs::to_string;
 use url::Url;
 
 pub const DEFAULT_VERSION: &str = "0.6";
@@ -66,14 +68,19 @@ impl Openstreetmap {
         Ok(api::permissions::Permissions::new(self).get().await?)
     }
 
-    async fn request<D>(
+    pub fn changesets(&self) -> api::changesets::Changesets {
+        api::changesets::Changesets::new(self)
+    }
+
+    async fn request<S, D>(
         &self,
         method: reqwest::Method,
         version: Option<&str>,
         endpoint: &str,
-        body: Option<Vec<u8>>,
+        body: Option<S>,
     ) -> Result<D, OpenstreetmapError>
     where
+        S: Serialize,
         D: DeserializeOwned,
     {
         let mut url = Url::parse(&self.host)?.join("api/")?;
@@ -93,7 +100,7 @@ impl Openstreetmap {
         };
 
         if let Some(payload) = body {
-            builder = builder.body(payload)
+            builder = builder.body(to_string(&payload)?.into_bytes())
         }
 
         let res = builder.send().await?;

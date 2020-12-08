@@ -61,7 +61,7 @@ impl Map {
         );
         let map = self
             .client
-            .request::<Osm>(
+            .request::<(), Osm>(
                 reqwest::Method::GET,
                 Some(&self.client.api_version),
                 &url,

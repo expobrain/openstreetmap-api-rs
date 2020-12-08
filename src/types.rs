@@ -57,10 +57,19 @@ pub struct BoundingBox {
     pub top: f64,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 pub struct Tag {
     pub k: String,
     pub v: String,
+}
+
+impl Tag {
+    pub fn new(k: &str, v: &str) -> Self {
+        Tag {
+            k: k.into(),
+            v: v.into(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -134,4 +143,16 @@ pub struct Map {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Permission {
     pub name: String,
+}
+
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+pub struct Changeset {
+    #[serde(rename = "tag", default)]
+    tags: Vec<Tag>,
+}
+
+impl Changeset {
+    pub fn new(tags: Vec<Tag>) -> Self {
+        Changeset { tags }
+    }
 }
