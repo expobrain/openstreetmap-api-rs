@@ -2,6 +2,13 @@ use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
 
+#[derive(Debug, Serialize)]
+#[serde(rename = "changeset")]
+struct ChangesetUpdate {
+    #[serde(rename = "tag")]
+    pub tags: Vec<types::Tag>,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename = "osm")]
 struct Osm {
@@ -18,6 +25,20 @@ struct OsmCreate {
 impl OsmCreate {
     pub fn new(changesets: Vec<types::ChangesetCreate>) -> Self {
         OsmCreate { changesets }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename = "osm")]
+struct OsmUpdate {
+    pub changeset: ChangesetUpdate,
+}
+
+impl OsmUpdate {
+    pub fn new(tags: Vec<types::Tag>) -> Self {
+        OsmUpdate {
+            changeset: ChangesetUpdate { tags },
+        }
     }
 }
 
@@ -48,6 +69,27 @@ impl Changeset {
             .await?;
 
         Ok(changeset_id)
+    }
+
+    pub async fn update_tags_on_changeset(
+        &self,
+        changeset_id: u64,
+        tags: Vec<types::Tag>,
+    ) -> Result<types::Changeset, OpenstreetmapError> {
+        let body = Some(OsmUpdate::new(tags));
+        let url = format!("changeset/{}", changeset_id);
+        let changeset = self
+            .client
+            .request::<OsmUpdate, Osm>(
+                reqwest::Method::PUT,
+                Some(&self.client.api_version),
+                &url,
+                body,
+            )
+            .await?
+            .changeset;
+
+        Ok(changeset)
     }
 
     pub async fn get(&self, changeset_id: u64) -> Result<types::Changeset, OpenstreetmapError> {
@@ -118,6 +160,11 @@ mod tests {
                 types::Tag::new("changeset_count", "1"),
             ]
         );
+    }
+
+    lazy_static! {
+        static ref CHANGESETS_UPDATE_BODY: Vec<types::Tag> =
+            vec![types::Tag::new("created_by", "JOSM 1.61")];
     }
 
     const CHANGESET_STR: &str = r#"
@@ -310,6 +357,54 @@ mod tests {
                     text: "Did you verify those street names?".into(),
                 }],
             }),
+            tags: vec![types::Tag {
+                k: "created_by".into(),
+                v: "JOSM 1.61".into(),
+            }],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[actix_rt::test]
+    async fn test_update_tags_on_changeset() {
+        /*
+        GIVEN an OSM client
+        WHEN calling the update_tags_on_changeset() function with a changeset ID
+            AND a list of tags
+        THEN returns the updated changeset
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("PUT"))
+            .and(path("/api/0.6/changeset/10"))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(CHANGESET_STR, "application/xml"))
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
+
+        // WHEN
+        let actual = client
+            .changesets()
+            .update_tags_on_changeset(10, CHANGESETS_UPDATE_BODY.clone())
+            .await
+            .unwrap();
+
+        // THEN
+        let expected = types::Changeset {
+            id: 10,
+            user: "fred".into(),
+            uid: 123,
+            created_at: "2008-11-08T19:07:39+01:00".into(),
+            open: true,
+            min_lon: Some(7.0191821),
+            min_lat: Some(49.2785426),
+            max_lon: Some(7.0197485),
+            max_lat: Some(49.2793101),
+            discussion: None,
             tags: vec![types::Tag {
                 k: "created_by".into(),
                 v: "JOSM 1.61".into(),
