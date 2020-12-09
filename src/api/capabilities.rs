@@ -63,22 +63,22 @@ struct NoteArea {
 
 #[derive(Debug, Deserialize)]
 struct Tracepoints {
-    pub per_page: u32,
+    pub per_page: u64,
 }
 
 #[derive(Debug, Deserialize)]
 struct Waynodes {
-    pub maximum: u32,
+    pub maximum: u64,
 }
 
 #[derive(Debug, Deserialize)]
 struct Changesets {
-    pub maximum_elements: u32,
+    pub maximum_elements: u64,
 }
 
 #[derive(Debug, Deserialize)]
 struct Timeout {
-    pub seconds: u32,
+    pub seconds: u64,
 }
 
 pub struct Capabilities {

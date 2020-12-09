@@ -21,10 +21,10 @@ pub struct Capabilities {
     pub versions: VersionRange,
     pub maximum_area: f64,
     pub maximum_note_area: f64,
-    pub tracepoints_per_page: u32,
-    pub maximum_waynodes: u32,
-    pub maximum_changeset_elements: u32,
-    pub timeout: u32,
+    pub tracepoints_per_page: u64,
+    pub maximum_waynodes: u64,
+    pub maximum_changeset_elements: u64,
+    pub timeout: u64,
     pub status: Status,
 }
 
@@ -74,13 +74,13 @@ impl Tag {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Node {
-    pub id: u32,
+    pub id: u64,
     pub visible: bool,
-    pub version: u32,
-    pub changeset: u32,
+    pub version: u64,
+    pub changeset: u64,
     pub timestamp: String,
     pub user: String,
-    pub uid: u32,
+    pub uid: u64,
     pub lat: f64,
     pub lon: f64,
     #[serde(rename = "tag", default)]
@@ -90,7 +90,7 @@ pub struct Node {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct NodeRef {
     #[serde(rename = "ref")]
-    pub node_id: u32,
+    pub node_id: u64,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -98,19 +98,19 @@ pub struct Member {
     #[serde(rename = "type")]
     pub member_type: String,
     #[serde(rename = "ref")]
-    pub node_id: u32,
+    pub node_id: u64,
     pub role: String,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Way {
-    pub id: u32,
+    pub id: u64,
     pub visible: bool,
-    pub version: u32,
-    pub changeset: u32,
+    pub version: u64,
+    pub changeset: u64,
     pub timestamp: String,
     pub user: String,
-    pub uid: u32,
+    pub uid: u64,
     #[serde(rename = "nd", default)]
     pub node_refs: Vec<NodeRef>,
     #[serde(rename = "tag", default)]
@@ -119,13 +119,13 @@ pub struct Way {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Relation {
-    pub id: u32,
+    pub id: u64,
     pub visible: bool,
-    pub version: u32,
-    pub changeset: u32,
+    pub version: u64,
+    pub changeset: u64,
     pub timestamp: String,
     pub user: String,
-    pub uid: u32,
+    pub uid: u64,
     #[serde(rename = "tag", default)]
     pub tags: Vec<Tag>,
     #[serde(rename = "member", default)]
@@ -167,7 +167,7 @@ impl ChangesetCreate {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Comment {
     pub date: String,
-    pub uid: u32,
+    pub uid: u64,
     pub user: String,
     #[serde(rename = "$value")]
     pub text: String,
@@ -181,9 +181,9 @@ pub struct Discussion {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Changeset {
-    pub id: u32,
+    pub id: u64,
     pub user: String,
-    pub uid: u32,
+    pub uid: u64,
     pub created_at: String,
     pub open: bool,
     pub discussion: Option<Discussion>,

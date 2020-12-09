@@ -34,11 +34,11 @@ impl Changeset {
     pub async fn create(
         &self,
         changeset: types::ChangesetCreate,
-    ) -> Result<u32, OpenstreetmapError> {
+    ) -> Result<u64, OpenstreetmapError> {
         let body = Some(OsmCreate::new(changeset));
         let changeset_id = self
             .client
-            .request::<OsmCreate, u32>(
+            .request::<OsmCreate, u64>(
                 reqwest::Method::PUT,
                 Some(&self.client.api_version),
                 "changeset/create",
@@ -49,20 +49,20 @@ impl Changeset {
         Ok(changeset_id)
     }
 
-    pub async fn get(&self, changeset_id: u32) -> Result<types::Changeset, OpenstreetmapError> {
+    pub async fn get(&self, changeset_id: u64) -> Result<types::Changeset, OpenstreetmapError> {
         self.inner_get(changeset_id, false).await
     }
 
     pub async fn get_with_discussion(
         &self,
-        changeset_id: u32,
+        changeset_id: u64,
     ) -> Result<types::Changeset, OpenstreetmapError> {
         self.inner_get(changeset_id, true).await
     }
 
     async fn inner_get(
         &self,
-        changeset_id: u32,
+        changeset_id: u64,
         include_discussions: bool,
     ) -> Result<types::Changeset, OpenstreetmapError> {
         let mut url = format!("changeset/{}", changeset_id);
@@ -215,7 +215,7 @@ mod tests {
             .unwrap();
 
         // THEN
-        let expected = CHANGESETS_CREATE_STR.parse::<u32>().unwrap();
+        let expected = CHANGESETS_CREATE_STR.parse::<u64>().unwrap();
 
         assert_eq!(actual, expected);
     }
