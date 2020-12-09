@@ -141,14 +141,14 @@ mod tests {
     use wiremock::matchers::{method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
-    const CHANGESETS_CREATE_STR: &str = "188664";
+    const CHANGESET_CREATE_STR: &str = "188664";
 
     lazy_static! {
         static ref CREDENTIALS: Credentials = Credentials::Basic("user".into(), "password".into());
     }
 
     lazy_static! {
-        static ref CHANGESETS_CREATE_BODY: types::ChangesetCreate = types::ChangesetCreate::new(
+        static ref CHANGESET_CREATE_BODY: types::ChangesetCreate = types::ChangesetCreate::new(
             "0.6",
             "iD",
             vec![
@@ -163,7 +163,7 @@ mod tests {
     }
 
     lazy_static! {
-        static ref CHANGESETS_UPDATE_BODY: Vec<types::Tag> =
+        static ref CHANGESET_UPDATE_BODY: Vec<types::Tag> =
             vec![types::Tag::new("created_by", "JOSM 1.61")];
     }
 
@@ -205,7 +205,7 @@ mod tests {
                 types::Tag::new("host", "https://master.apis.dev.openstreetmap.org/edit"),
                 types::Tag::new("locale", "en-GB"),
                 types::Tag::new("imagery_used", "Bing aerial imagery"),
-                types::Tag::new("changesets_count", "1"),
+                types::Tag::new("changeset_count", "1"),
             ],
         )]);
 
@@ -221,7 +221,7 @@ mod tests {
                     <tag k="host" v="https://master.apis.dev.openstreetmap.org/edit"/>
                     <tag k="locale" v="en-GB"/>
                     <tag k="imagery_used" v="Bing aerial imagery"/>
-                    <tag k="changesets_count" v="1"/>
+                    <tag k="changeset_count" v="1"/>
                 </changeset>
             </osm>
         "#
@@ -248,7 +248,7 @@ mod tests {
         Mock::given(method("PUT"))
             .and(path("/api/0.6/changeset/create"))
             .respond_with(
-                ResponseTemplate::new(200).set_body_raw(CHANGESETS_CREATE_STR, "text/plain"),
+                ResponseTemplate::new(200).set_body_raw(CHANGESET_CREATE_STR, "text/plain"),
             )
             .mount(&mock_server)
             .await;
@@ -258,12 +258,12 @@ mod tests {
         // WHEN
         let actual = client
             .changesets()
-            .create(vec![CHANGESETS_CREATE_BODY.clone()])
+            .create(vec![CHANGESET_CREATE_BODY.clone()])
             .await
             .unwrap();
 
         // THEN
-        let expected = CHANGESETS_CREATE_STR.parse::<u64>().unwrap();
+        let expected = CHANGESET_CREATE_STR.parse::<u64>().unwrap();
 
         assert_eq!(actual, expected);
     }
@@ -389,7 +389,7 @@ mod tests {
         // WHEN
         let actual = client
             .changesets()
-            .update_tags_on_changeset(10, CHANGESETS_UPDATE_BODY.clone())
+            .update_tags_on_changeset(10, CHANGESET_UPDATE_BODY.clone())
             .await
             .unwrap();
 
