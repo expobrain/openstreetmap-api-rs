@@ -147,21 +147,36 @@ pub struct Permission {
 
 #[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 #[serde(rename = "changeset")]
-pub struct Changeset {
+pub struct ChangesetCreate {
     version: String,
     generator: String,
     #[serde(rename = "tag", default)]
     tags: Vec<Tag>,
 }
 
-impl Changeset {
+impl ChangesetCreate {
     pub fn new(version: &str, generator: &str, tags: Vec<Tag>) -> Self {
-        Changeset {
+        ChangesetCreate {
             version: version.into(),
             generator: generator.into(),
             tags,
         }
     }
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct Changeset {
+    pub id: u32,
+    pub user: String,
+    pub uid: u32,
+    pub created_at: String,
+    pub open: bool,
+    pub min_lon: f64,
+    pub min_lat: f64,
+    pub max_lon: f64,
+    pub max_lat: f64,
+    #[serde(rename = "tag", default)]
+    pub tags: Vec<Tag>,
 }
 
 #[cfg(test)]
@@ -171,14 +186,14 @@ mod tests {
     use quick_xml::se::to_string;
 
     #[test]
-    fn test_changeset_serialize_xml() {
+    fn test_changeset_create_serialize_xml() {
         /*
-        GIVEN a Changeset instance
+        GIVEN a ChangesetCreate instance
         WHEN serialised
         THEN matches the expectation
         */
         // GIVEN
-        let changeset = Changeset::new(
+        let changeset_create = ChangesetCreate::new(
             "0.6",
             "iD",
             vec![
@@ -192,7 +207,7 @@ mod tests {
         );
 
         // WHEN
-        let actual = to_string(&changeset).unwrap();
+        let actual = to_string(&changeset_create).unwrap();
 
         // THEN
         let expected = r#"
