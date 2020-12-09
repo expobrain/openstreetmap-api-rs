@@ -67,8 +67,8 @@ impl Openstreetmap {
         Ok(api::permissions::Permissions::new(self).get().await?)
     }
 
-    pub fn changesets(&self) -> api::changesets::Changesets {
-        api::changesets::Changesets::new(self)
+    pub fn changesets(&self) -> api::changeset::Changeset {
+        api::changeset::Changeset::new(self)
     }
 
     async fn request<S, D>(

@@ -20,13 +20,13 @@ impl OsmCreate {
     }
 }
 
-pub struct Changesets {
+pub struct Changeset {
     client: Openstreetmap,
 }
 
-impl Changesets {
+impl Changeset {
     pub fn new(client: &Openstreetmap) -> Self {
-        Changesets {
+        Changeset {
             client: client.clone(),
         }
     }
