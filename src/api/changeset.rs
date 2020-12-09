@@ -11,12 +11,13 @@ struct Osm {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename = "osm")]
 struct OsmCreate {
-    pub changeset: types::ChangesetCreate,
+    #[serde(rename = "changeset")]
+    pub changesets: Vec<types::ChangesetCreate>,
 }
 
 impl OsmCreate {
-    pub fn new(changeset: types::ChangesetCreate) -> Self {
-        OsmCreate { changeset }
+    pub fn new(changesets: Vec<types::ChangesetCreate>) -> Self {
+        OsmCreate { changesets }
     }
 }
 
@@ -33,9 +34,9 @@ impl Changeset {
 
     pub async fn create(
         &self,
-        changeset: types::ChangesetCreate,
+        changesets: Vec<types::ChangesetCreate>,
     ) -> Result<u64, OpenstreetmapError> {
-        let body = Some(OsmCreate::new(changeset));
+        let body = Some(OsmCreate::new(changesets));
         let changeset_id = self
             .client
             .request::<OsmCreate, u64>(
@@ -148,7 +149,7 @@ mod tests {
         THEN matches the expectation
         */
         // GIVEN
-        let osm_create = OsmCreate::new(types::ChangesetCreate::new(
+        let osm_create = OsmCreate::new(vec![types::ChangesetCreate::new(
             "0.6",
             "iD",
             vec![
@@ -159,7 +160,7 @@ mod tests {
                 types::Tag::new("imagery_used", "Bing aerial imagery"),
                 types::Tag::new("changesets_count", "1"),
             ],
-        ));
+        )]);
 
         // WHEN
         let actual = to_string(&osm_create).unwrap();
@@ -210,7 +211,7 @@ mod tests {
         // WHEN
         let actual = client
             .changesets()
-            .create(CHANGESETS_CREATE_BODY.clone())
+            .create(vec![CHANGESETS_CREATE_BODY.clone()])
             .await
             .unwrap();
 
