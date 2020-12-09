@@ -124,6 +124,17 @@ impl Changeset {
 
         Ok(changeset)
     }
+
+    pub async fn close(&self, changeset_id: u64) -> Result<(), OpenstreetmapError> {
+        let url = format!("changeset/{}/close", changeset_id);
+
+        // Use Vec<u8> because `serde` cannot deserialise EOF;
+        self.client
+            .request_including_version::<(), Vec<u8>>(reqwest::Method::PUT, &url, None)
+            .await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -407,6 +418,34 @@ mod tests {
                 v: "JOSM 1.61".into(),
             }],
         };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[actix_rt::test]
+    async fn test_close() {
+        /*
+        GIVEN an OSM client
+        WHEN calling the close() function with a changeset ID
+        THEN returns nothing
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("PUT"))
+            .and(path("/api/0.6/changeset/10/close"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
+
+        // WHEN
+        let actual = client.changesets().close(10).await.unwrap();
+
+        // THEN
+        let expected = ();
 
         assert_eq!(actual, expected);
     }
