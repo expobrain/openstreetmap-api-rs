@@ -186,13 +186,15 @@ pub struct Changeset {
     pub uid: u32,
     pub created_at: String,
     pub open: bool,
-    pub min_lon: f64,
-    pub min_lat: f64,
-    pub max_lon: f64,
-    pub max_lat: f64,
     pub discussion: Option<Discussion>,
     #[serde(rename = "tag", default)]
     pub tags: Vec<Tag>,
+
+    // The bounding box attributes will be missing for an empty changeset
+    pub min_lon: Option<f64>,
+    pub min_lat: Option<f64>,
+    pub max_lon: Option<f64>,
+    pub max_lat: Option<f64>,
 }
 
 #[cfg(test)]
