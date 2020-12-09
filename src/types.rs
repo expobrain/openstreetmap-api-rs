@@ -165,6 +165,21 @@ impl ChangesetCreate {
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
+pub struct Comment {
+    pub date: String,
+    pub uid: u32,
+    pub user: String,
+    #[serde(rename = "$value")]
+    pub text: String,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct Discussion {
+    #[serde(rename = "comment", default)]
+    pub comments: Vec<Comment>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Changeset {
     pub id: u32,
     pub user: String,
@@ -175,6 +190,7 @@ pub struct Changeset {
     pub min_lat: f64,
     pub max_lon: f64,
     pub max_lat: f64,
+    pub discussion: Option<Discussion>,
     #[serde(rename = "tag", default)]
     pub tags: Vec<Tag>,
 }

@@ -50,13 +50,33 @@ impl Changeset {
     }
 
     pub async fn get(&self, changeset_id: u32) -> Result<types::Changeset, OpenstreetmapError> {
-        let endpoint = format!("changeset/{}", changeset_id);
+        self.inner_get(changeset_id, false).await
+    }
+
+    pub async fn get_with_discussion(
+        &self,
+        changeset_id: u32,
+    ) -> Result<types::Changeset, OpenstreetmapError> {
+        self.inner_get(changeset_id, true).await
+    }
+
+    async fn inner_get(
+        &self,
+        changeset_id: u32,
+        include_discussions: bool,
+    ) -> Result<types::Changeset, OpenstreetmapError> {
+        let mut url = format!("changeset/{}", changeset_id);
+
+        if include_discussions {
+            url = format!("{}?include_discussion=true", url);
+        }
+
         let changeset = self
             .client
             .request::<(), Osm>(
                 reqwest::Method::GET,
                 Some(&self.client.api_version),
-                &endpoint,
+                &url,
                 None,
             )
             .await?
@@ -75,10 +95,14 @@ mod tests {
     use lazy_static::lazy_static;
     use pretty_assertions::assert_eq;
     use quick_xml::se::to_string;
-    use wiremock::matchers::{method, path};
+    use wiremock::matchers::{method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     const CHANGESETS_CREATE_STR: &str = "188664";
+
+    lazy_static! {
+        static ref CREDENTIALS: Credentials = Credentials::Basic("user".into(), "password".into());
+    }
 
     lazy_static! {
         static ref CHANGESETS_CREATE_BODY: types::ChangesetCreate = types::ChangesetCreate::new(
@@ -99,6 +123,14 @@ mod tests {
         <osm>
             <changeset id="10" user="fred" uid="123" created_at="2008-11-08T19:07:39+01:00" open="true" min_lon="7.0191821" min_lat="49.2785426" max_lon="7.0197485" max_lat="49.2793101">
                 <tag k="created_by" v="JOSM 1.61"/>
+            </changeset>
+        </osm>
+    "#;
+
+    const CHANGESET_WITH_DISCUSSION_STR: &str = r#"
+        <osm>
+            <changeset id="10" user="fred" uid="123" created_at="2008-11-08T19:07:39+01:00" open="true" min_lon="7.0191821" min_lat="49.2785426" max_lon="7.0197485" max_lat="49.2793101">
+                <tag k="created_by" v="JOSM 1.61"/>
                 <discussion>
                     <comment date="2015-01-01T18:56:48Z" uid="1841" user="metaodi">
                         <text>Did you verify those street names?</text>
@@ -107,10 +139,6 @@ mod tests {
             </changeset>
         </osm>
     "#;
-
-    lazy_static! {
-        static ref CREDENTIALS: Credentials = Credentials::Basic("user".into(), "password".into());
-    }
 
     #[test]
     fn test_osm_serialise() {
@@ -225,7 +253,66 @@ mod tests {
             min_lat: 49.2785426,
             max_lon: 7.0197485,
             max_lat: 49.2793101,
-            tags: vec![types::Tag::new("created_by", "JOSM 1.61")],
+            discussion: None,
+            tags: vec![types::Tag {
+                k: "created_by".into(),
+                v: "JOSM 1.61".into(),
+            }],
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[actix_rt::test]
+    async fn test_get_with_discussion() {
+        /*
+        GIVEN an OSM client
+        WHEN calling the get() function with a changeset ID
+            AND includes discussion
+        THEN returns the requested changeset
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/api/0.6/changeset/10"))
+            .and(query_param("include_discussion", "true"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_raw(CHANGESET_WITH_DISCUSSION_STR, "application/xml"),
+            )
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
+
+        // WHEN
+        let actual = client.changesets().get_with_discussion(10).await.unwrap();
+
+        // THEN
+        let expected = types::Changeset {
+            id: 10,
+            user: "fred".into(),
+            uid: 123,
+            created_at: "2008-11-08T19:07:39+01:00".into(),
+            open: true,
+            min_lon: 7.0191821,
+            min_lat: 49.2785426,
+            max_lon: 7.0197485,
+            max_lat: 49.2793101,
+            discussion: Some(types::Discussion {
+                comments: vec![types::Comment {
+                    date: "2015-01-01T18:56:48Z".into(),
+                    uid: 1841,
+                    user: "metaodi".into(),
+                    text: "Did you verify those street names?".into(),
+                }],
+            }),
+            tags: vec![types::Tag {
+                k: "created_by".into(),
+                v: "JOSM 1.61".into(),
+            }],
         };
 
         assert_eq!(actual, expected);
