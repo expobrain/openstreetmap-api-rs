@@ -92,10 +92,12 @@ impl Changeset {
         Ok(changeset)
     }
 
+    #[inline]
     pub async fn get(&self, changeset_id: u64) -> Result<types::Changeset, OpenstreetmapError> {
         self.inner_get(changeset_id, false).await
     }
 
+    #[inline]
     pub async fn get_with_discussion(
         &self,
         changeset_id: u64,
@@ -116,12 +118,7 @@ impl Changeset {
 
         let changeset = self
             .client
-            .request::<(), Osm>(
-                reqwest::Method::GET,
-                Some(&self.client.api_version),
-                &url,
-                None,
-            )
+            .request_including_version::<(), Osm>(reqwest::Method::GET, &url, None)
             .await?
             .changeset;
 

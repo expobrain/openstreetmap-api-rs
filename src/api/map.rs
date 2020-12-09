@@ -61,12 +61,7 @@ impl Map {
         );
         let map = self
             .client
-            .request::<(), Osm>(
-                reqwest::Method::GET,
-                Some(&self.client.api_version),
-                &url,
-                None,
-            )
+            .request_including_version::<(), Osm>(reqwest::Method::GET, &url, None)
             .await?
             .into();
 

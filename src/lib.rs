@@ -51,24 +51,44 @@ impl Openstreetmap {
         }
     }
 
+    #[inline]
     pub async fn versions(&self) -> Result<Vec<String>, OpenstreetmapError> {
         Ok(api::versions::Versions::new(self).get().await?)
     }
 
+    #[inline]
     pub async fn capabilities(&self) -> Result<types::CapabilitiesAndPolicy, OpenstreetmapError> {
         Ok(api::capabilities::Capabilities::new(self).get().await?)
     }
 
+    #[inline]
     pub async fn map(&self, bbox: &types::BoundingBox) -> Result<types::Map, OpenstreetmapError> {
         Ok(api::map::Map::new(self).get(bbox).await?)
     }
 
+    #[inline]
     pub async fn permissions(&self) -> Result<Vec<types::Permission>, OpenstreetmapError> {
         Ok(api::permissions::Permissions::new(self).get().await?)
     }
 
+    #[inline]
     pub fn changesets(&self) -> api::changeset::Changeset {
         api::changeset::Changeset::new(self)
+    }
+
+    #[inline]
+    async fn request_including_version<S, D>(
+        &self,
+        method: reqwest::Method,
+        endpoint: &str,
+        body: Option<S>,
+    ) -> Result<D, OpenstreetmapError>
+    where
+        S: Serialize,
+        D: DeserializeOwned,
+    {
+        self.request::<S, D>(method, Some(&self.api_version), endpoint, body)
+            .await
     }
 
     async fn request<S, D>(
