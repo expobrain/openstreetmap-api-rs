@@ -135,6 +135,24 @@ impl Changeset {
 
         Ok(())
     }
+
+    pub async fn download(
+        &self,
+        changeset_id: u64,
+    ) -> Result<types::ChangesetChanges, OpenstreetmapError> {
+        let url = format!("changeset/{}/download", changeset_id);
+
+        let changes = self
+            .client
+            .request_including_version::<(), types::ChangesetChanges>(
+                reqwest::Method::GET,
+                &url,
+                None,
+            )
+            .await?;
+
+        Ok(changes)
+    }
 }
 
 #[cfg(test)]
@@ -194,6 +212,16 @@ mod tests {
                 </discussion>
             </changeset>
         </osm>
+    "#;
+
+    const CHANGESET_DOWNLOAD_STR: &str = r#"
+        <osmChange version="0.6" generator="acme osm editor">
+            <modify>
+                <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                    <tag k="amenity" v="school"/>
+                </node>
+            </modify>
+        </osmChange>
     "#;
 
     #[test]
@@ -446,6 +474,59 @@ mod tests {
 
         // THEN
         let expected = ();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[actix_rt::test]
+    async fn test_download() {
+        /*
+        GIVEN an OSM client
+        WHEN calling the download() function with a changeset ID
+            AND a list of tags
+        THEN returns the updated changeset
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path("/api/0.6/changeset/10/download"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_raw(CHANGESET_DOWNLOAD_STR, "application/xml"),
+            )
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
+
+        // WHEN
+        let actual = client.changesets().download(10).await.unwrap();
+
+        // THEN
+        let expected = types::ChangesetChanges {
+            modifications: vec![types::Modification {
+                nodes: vec![types::Node {
+                    id: 1234,
+                    changeset: 42,
+                    version: 2,
+                    uid: 1,
+                    timestamp: "2009-12-09T08:19:00Z".into(),
+                    user: "user".into(),
+                    visible: true,
+                    lat: 12.1234567,
+                    lon: -8.7654321,
+                    tags: vec![types::Tag {
+                        k: "amenity".into(),
+                        v: "school".into(),
+                    }],
+                }],
+                ways: vec![],
+                relations: vec![],
+            }],
+            creations: vec![],
+            deletions: vec![],
+        };
 
         assert_eq!(actual, expected);
     }
