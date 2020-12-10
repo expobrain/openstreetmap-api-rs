@@ -72,7 +72,7 @@ impl Openstreetmap {
     }
 
     #[inline]
-    pub fn changesets(&self) -> api::changeset::Changeset {
+    pub fn changeset(&self) -> api::changeset::Changeset {
         api::changeset::Changeset::new(self)
     }
 

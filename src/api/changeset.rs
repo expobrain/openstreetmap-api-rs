@@ -293,7 +293,7 @@ mod tests {
 
         // WHEN
         let actual = client
-            .changesets()
+            .changeset()
             .create(vec![CHANGESET_CREATE_BODY.clone()])
             .await
             .unwrap();
@@ -324,7 +324,7 @@ mod tests {
         let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
 
         // WHEN
-        let actual = client.changesets().get(10).await.unwrap();
+        let actual = client.changeset().get(10).await.unwrap();
 
         // THEN
         let expected = types::Changeset {
@@ -372,7 +372,7 @@ mod tests {
         let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
 
         // WHEN
-        let actual = client.changesets().get_with_discussion(10).await.unwrap();
+        let actual = client.changeset().get_with_discussion(10).await.unwrap();
 
         // THEN
         let expected = types::Changeset {
@@ -424,7 +424,7 @@ mod tests {
 
         // WHEN
         let actual = client
-            .changesets()
+            .changeset()
             .update_tags_on_changeset(10, CHANGESET_UPDATE_BODY.clone())
             .await
             .unwrap();
@@ -470,7 +470,7 @@ mod tests {
         let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
 
         // WHEN
-        let actual = client.changesets().close(10).await.unwrap();
+        let actual = client.changeset().close(10).await.unwrap();
 
         // THEN
         let expected = ();
@@ -501,7 +501,7 @@ mod tests {
         let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
 
         // WHEN
-        let actual = client.changesets().download(10).await.unwrap();
+        let actual = client.changeset().download(10).await.unwrap();
 
         // THEN
         let expected = types::ChangesetChanges {
