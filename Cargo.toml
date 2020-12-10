@@ -14,7 +14,7 @@ serde_derive = "1.0"
 url = "2.2"
 
 [dev-dependencies]
-wiremock = "*"
-actix-rt = "*"
-lazy_static = "*"
-pretty_assertions = "*"
+wiremock = "0.3"
+actix-rt = "1.1"
+lazy_static = "1.4"
+pretty_assertions = "0.6"
