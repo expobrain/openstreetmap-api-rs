@@ -330,13 +330,13 @@ mod tests {
         expected,
         case(
             r#"
-                <osmChange version="0.6" generator="acme osm editor">
-                    <modify>
-                        <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
-                            <tag k="amenity" v="school"/>
-                        </node>
-                    </modify>
-                </osmChange>
+            <osmChange version="0.6" generator="acme osm editor">
+                <modify>
+                    <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                        <tag k="amenity" v="school"/>
+                    </node>
+                </modify>
+            </osmChange>
             "#
             , ChangesetChanges {
                 modifications: vec![Modification {
@@ -364,13 +364,13 @@ mod tests {
         ),
         case(
             r#"
-                <osmChange version="0.6" generator="acme osm editor">
-                    <create>
-                        <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
-                            <tag k="amenity" v="school"/>
-                        </node>
-                    </create>
-                </osmChange>
+            <osmChange version="0.6" generator="acme osm editor">
+                <create>
+                    <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                        <tag k="amenity" v="school"/>
+                    </node>
+                </create>
+            </osmChange>
             "#
             , ChangesetChanges {
                 modifications: vec![],
@@ -398,13 +398,13 @@ mod tests {
         ),
         case(
             r#"
-                <osmChange version="0.6" generator="acme osm editor">
-                    <delete>
-                        <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
-                            <tag k="amenity" v="school"/>
-                        </node>
-                    </delete>
-                </osmChange>
+            <osmChange version="0.6" generator="acme osm editor">
+                <delete>
+                    <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                        <tag k="amenity" v="school"/>
+                    </node>
+                </delete>
+            </osmChange>
             "#
             , ChangesetChanges {
                 modifications: vec![],

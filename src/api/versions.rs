@@ -40,34 +40,31 @@ impl Versions {
 
 #[cfg(test)]
 mod tests {
-    use crate::types::Credentials;
-    use crate::Openstreetmap;
-
-    use lazy_static::lazy_static;
+    use super::*;
+    use crate::types;
+    use rstest::*;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
-    const VERSION_STR: &str = r#"
-        <osm generator="OpenStreetMap server" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
-            <api>
-                <version>0.6</version>
-            </api>
-        </osm>
-    "#;
-    const VERSION_UNKNOWN_VERSION_STR: &str = r#"
-        <osm generator="OpenStreetMap server" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
-            <api>
-                <version>0.7</version>
-            </api>
-        </osm>
-    "#;
-
-    lazy_static! {
-        static ref CREDENTIALS: Credentials = Credentials::Basic("user".into(), "password".into());
+    #[fixture]
+    fn credentials() -> types::Credentials {
+        types::Credentials::Basic("user".into(), "password".into())
     }
 
+    #[rstest(response_str, expected,
+        case(
+            r#"
+            <osm generator="OpenStreetMap server" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+                <api>
+                    <version>0.6</version>
+                </api>
+            </osm>
+            "#,
+            vec!["0.6".to_string()]
+        )
+    )]
     #[actix_rt::test]
-    async fn test_get() {
+    async fn test_get(credentials: types::Credentials, response_str: &str, expected: Vec<String>) {
         /*
         GIVEN an OSM client
         WHEN calling the versions() function
@@ -79,22 +76,37 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/api/versions"))
-            .respond_with(ResponseTemplate::new(200).set_body_raw(VERSION_STR, "application/xml"))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
             .mount(&mock_server)
             .await;
 
-        let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
+        let client = Openstreetmap::new(mock_server.uri(), credentials);
 
         // WHEN
         let actual = client.versions().await.unwrap();
 
         // THEN
-        let expected = vec!["0.6".to_string()];
-
         assert_eq!(actual, expected);
     }
+
+    #[rstest(response_str, expected,
+        case(
+            r#"
+            <osm generator="OpenStreetMap server" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+                <api>
+                    <version>0.7</version>
+                </api>
+            </osm>
+            "#,
+            vec!["0.7".to_string()]
+        )
+    )]
     #[actix_rt::test]
-    async fn test_get_returns_unknown_version() {
+    async fn test_get_returns_unknown_version(
+        credentials: types::Credentials,
+        response_str: &str,
+        expected: Vec<String>,
+    ) {
         /*
         GIVEN an OSM client
             AND an unknown version number
@@ -107,21 +119,16 @@ mod tests {
 
         Mock::given(method("GET"))
             .and(path("/api/versions"))
-            .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_raw(VERSION_UNKNOWN_VERSION_STR, "application/xml"),
-            )
+            .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
             .mount(&mock_server)
             .await;
 
-        let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
+        let client = Openstreetmap::new(mock_server.uri(), credentials);
 
         // WHEN
         let actual = client.versions().await.unwrap();
 
         // THEN
-        let expected = vec!["0.7".to_string()];
-
         assert_eq!(actual, expected);
     }
 }
