@@ -12,6 +12,7 @@ log = "0.4"
 quick-xml = { version = "0.20", features = ["serialize"] }
 serde_derive = "1.0"
 url = "2.2"
+serde_urlencoded = "0.7"
 
 [dev-dependencies]
 wiremock = "0.3"

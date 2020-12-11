@@ -1,4 +1,3 @@
-use quick_xml::de::DeError;
 use std::error;
 use std::fmt;
 
@@ -11,7 +10,10 @@ pub enum OpenstreetmapError {
     Url(url::ParseError),
 
     /// error associated with parsing or serializing
-    Serde(DeError),
+    Serde(quick_xml::de::DeError),
+
+    /// error associated with parsing or serializing query strings
+    UrlEncode(serde_urlencoded::ser::Error),
 
     /// client request errors
     Client {
@@ -49,8 +51,14 @@ impl From<url::ParseError> for OpenstreetmapError {
     }
 }
 
-impl From<DeError> for OpenstreetmapError {
-    fn from(error: DeError) -> Self {
+impl From<quick_xml::de::DeError> for OpenstreetmapError {
+    fn from(error: quick_xml::de::DeError) -> Self {
         OpenstreetmapError::Serde(error)
+    }
+}
+
+impl From<serde_urlencoded::ser::Error> for OpenstreetmapError {
+    fn from(error: serde_urlencoded::ser::Error) -> Self {
+        OpenstreetmapError::UrlEncode(error)
     }
 }

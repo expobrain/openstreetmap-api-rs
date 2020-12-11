@@ -49,7 +49,7 @@ pub struct CapabilitiesAndPolicy {
     pub policy: Policy,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct BoundingBox {
     pub left: f64,
     pub bottom: f64,
@@ -185,6 +185,7 @@ pub struct Changeset {
     pub user: String,
     pub uid: u64,
     pub created_at: String,
+    pub closed_at: Option<String>,
     pub open: bool,
     pub discussion: Option<Discussion>,
     #[serde(rename = "tag", default)]

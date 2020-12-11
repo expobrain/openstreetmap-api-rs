@@ -77,6 +77,14 @@ impl Openstreetmap {
     }
 
     #[inline]
+    pub async fn changesets(
+        &self,
+        query: &api::changesets::Query,
+    ) -> Result<Vec<types::Changeset>, OpenstreetmapError> {
+        Ok(api::changesets::Changesets::new(self).get(query).await?)
+    }
+
+    #[inline]
     async fn request_including_version<S, D>(
         &self,
         method: reqwest::Method,
