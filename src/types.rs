@@ -72,7 +72,7 @@ impl Tag {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Node {
     pub id: u64,
     pub visible: bool,
@@ -87,13 +87,13 @@ pub struct Node {
     pub tags: Vec<Tag>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct NodeRef {
     #[serde(rename = "ref")]
     pub node_id: u64,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Member {
     #[serde(rename = "type")]
     pub member_type: String,
@@ -102,7 +102,7 @@ pub struct Member {
     pub role: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Way {
     pub id: u64,
     pub visible: bool,
@@ -117,7 +117,7 @@ pub struct Way {
     pub tags: Vec<Tag>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Relation {
     pub id: u64,
     pub visible: bool,
@@ -198,7 +198,7 @@ pub struct Changeset {
     pub max_lat: Option<f64>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Modification {
     #[serde(rename = "node", default)]
     pub nodes: Vec<Node>,
@@ -208,7 +208,7 @@ pub struct Modification {
     pub relations: Vec<Relation>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Creation {
     #[serde(rename = "node", default)]
     pub nodes: Vec<Node>,
@@ -218,7 +218,7 @@ pub struct Creation {
     pub relations: Vec<Relation>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 pub struct Deletion {
     #[serde(rename = "node", default)]
     pub nodes: Vec<Node>,
@@ -228,7 +228,8 @@ pub struct Deletion {
     pub relations: Vec<Relation>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename = "osmChange")]
 pub struct ChangesetChanges {
     #[serde(rename = "modify", default)]
     pub modifications: Vec<Modification>,
@@ -236,6 +237,41 @@ pub struct ChangesetChanges {
     pub creations: Vec<Creation>,
     #[serde(rename = "delete", default)]
     pub deletions: Vec<Deletion>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename = "node")]
+pub struct DiffNode {
+    pub old_id: u64,
+    pub new_id: u64,
+    pub new_version: u64,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename = "node")]
+pub struct DiffWay {
+    pub old_id: u64,
+    pub new_id: u64,
+    pub new_version: u64,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename = "node")]
+pub struct DiffRelation {
+    pub old_id: u64,
+    pub new_id: u64,
+    pub new_version: u64,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename = "diffResult")]
+pub struct DiffResult {
+    #[serde(rename = "node", default)]
+    pub nodes: Vec<DiffNode>,
+    #[serde(rename = "way", default)]
+    pub ways: Vec<DiffWay>,
+    #[serde(rename = "relation", default)]
+    pub relations: Vec<DiffRelation>,
 }
 
 #[cfg(test)]

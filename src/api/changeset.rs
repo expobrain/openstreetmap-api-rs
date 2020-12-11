@@ -153,6 +153,25 @@ impl Changeset {
 
         Ok(changes)
     }
+
+    pub async fn upload(
+        &self,
+        changeset_id: u64,
+        changeset_change: types::ChangesetChanges,
+    ) -> Result<types::DiffResult, OpenstreetmapError> {
+        let url = format!("changeset/{}/upload", changeset_id);
+
+        let diffs = self
+            .client
+            .request_including_version::<types::ChangesetChanges, types::DiffResult>(
+                reqwest::Method::POST,
+                &url,
+                Some(changeset_change),
+            )
+            .await?;
+
+        Ok(diffs)
+    }
 }
 
 #[cfg(test)]
@@ -164,6 +183,7 @@ mod tests {
     use lazy_static::lazy_static;
     use pretty_assertions::assert_eq;
     use quick_xml::se::to_string;
+    use rstest::rstest;
     use wiremock::matchers::{method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -531,6 +551,76 @@ mod tests {
             deletions: vec![],
         };
 
+        assert_eq!(actual, expected);
+    }
+
+    #[rstest( body, response_str, expected,
+        case(
+            types::ChangesetChanges {
+                modifications: vec![types::Modification {
+                    nodes: vec![types::Node {
+                        id: 1234,
+                        changeset: 42,
+                        version: 2,
+                        uid: 1,
+                        timestamp: "2009-12-09T08:19:00Z".into(),
+                        user: "user".into(),
+                        visible: true,
+                        lat: 12.1234567,
+                        lon: -8.7654321,
+                        tags: vec![types::Tag {
+                            k: "amenity".into(),
+                            v: "school".into(),
+                        }],
+                    }],
+                    ways: vec![],
+                    relations: vec![],
+                }],
+                creations: vec![],
+                deletions: vec![],
+            },
+            r#"
+            <diffResult generator="OpenStreetMap Server" version="0.6">
+                <node old_id="1234" new_id="42" new_version="2" />
+                <way old_id="1234" new_id="42" new_version="2" />
+                <relation old_id="1234" new_id="42" new_version="2" />
+            </diffResult>
+            "#,
+            types::DiffResult {
+                nodes:vec![types::DiffNode { old_id:1234, new_id:42, new_version:2 }],
+                ways:vec![types::DiffWay { old_id:1234, new_id:42, new_version:2 }],
+                relations:vec![types::DiffRelation { old_id:1234, new_id:42, new_version:2 }],
+            }
+        ),
+    )]
+    #[actix_rt::test]
+    async fn test_upload(
+        body: types::ChangesetChanges,
+        response_str: &str,
+        expected: types::DiffResult,
+    ) {
+        /*
+        GIVEN an OSM client
+        WHEN calling the upload() function with a changeset ID
+            AND a ChangesetChange
+        THEN returns the list of diffs
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path("/api/0.6/changeset/10/upload"))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), CREDENTIALS.clone());
+
+        // WHEN
+        let actual = client.changeset().upload(10, body).await.unwrap();
+
+        // THEN
         assert_eq!(actual, expected);
     }
 }
