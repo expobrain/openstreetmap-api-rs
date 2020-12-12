@@ -42,6 +42,17 @@ impl OsmUpdate {
     }
 }
 
+#[derive(Debug, Serialize)]
+struct Comment<'a> {
+    pub text: &'a str,
+}
+
+impl<'a> Comment<'a> {
+    fn new(text: &'a str) -> Self {
+        Comment { text }
+    }
+}
+
 pub struct Changeset {
     client: Openstreetmap,
 }
@@ -57,7 +68,7 @@ impl Changeset {
         &self,
         changesets: Vec<types::ChangesetCreate>,
     ) -> Result<u64, OpenstreetmapError> {
-        let body = Some(OsmCreate::new(changesets));
+        let body = types::RequestBody::Xml(OsmCreate::new(changesets));
         let changeset_id = self
             .client
             .request::<OsmCreate, u64>(
@@ -76,7 +87,7 @@ impl Changeset {
         changeset_id: u64,
         tags: Vec<types::Tag>,
     ) -> Result<types::Changeset, OpenstreetmapError> {
-        let body = Some(OsmUpdate::new(tags));
+        let body = types::RequestBody::Xml(OsmUpdate::new(tags));
         let url = format!("changeset/{}", changeset_id);
         let changeset = self
             .client
@@ -118,7 +129,11 @@ impl Changeset {
 
         let changeset = self
             .client
-            .request_including_version::<(), Osm>(reqwest::Method::GET, &url, None)
+            .request_including_version::<(), Osm>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
             .await?
             .changeset;
 
@@ -128,9 +143,13 @@ impl Changeset {
     pub async fn close(&self, changeset_id: u64) -> Result<(), OpenstreetmapError> {
         let url = format!("changeset/{}/close", changeset_id);
 
-        // Use Vec<u8> because `serde` cannot deserialise EOF;
+        // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
         self.client
-            .request_including_version::<(), Vec<u8>>(reqwest::Method::PUT, &url, None)
+            .request_including_version::<(), Vec<u8>>(
+                reqwest::Method::PUT,
+                &url,
+                types::RequestBody::None,
+            )
             .await?;
 
         Ok(())
@@ -147,7 +166,7 @@ impl Changeset {
             .request_including_version::<(), types::ChangesetChanges>(
                 reqwest::Method::GET,
                 &url,
-                None,
+                types::RequestBody::None,
             )
             .await?;
 
@@ -166,11 +185,27 @@ impl Changeset {
             .request_including_version::<types::ChangesetChanges, types::DiffResult>(
                 reqwest::Method::POST,
                 &url,
-                Some(changeset_change),
+                types::RequestBody::Xml(changeset_change),
             )
             .await?;
 
         Ok(diffs)
+    }
+
+    pub async fn comment(
+        &self,
+        changeset_id: u64,
+        comment: &str,
+    ) -> Result<(), OpenstreetmapError> {
+        let url = format!("changeset/{}/comment", changeset_id);
+        let body = types::RequestBody::Form(Comment::new(comment));
+
+        // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
+        self.client
+            .request_including_version::<Comment, Vec<u8>>(reqwest::Method::POST, &url, body)
+            .await?;
+
+        Ok(())
     }
 }
 
@@ -643,5 +678,36 @@ mod tests {
 
         // THEN
         assert_eq!(actual, expected);
+    }
+
+    #[rstest(changeset_id, comment, case(10, "my_comment"))]
+    #[actix_rt::test]
+    async fn test_comment(credentials: types::Credentials, changeset_id: u64, comment: &str) {
+        /*
+        GIVEN an OSM client
+        WHEN calling the comment() function with a changeset ID
+        THEN returns nothing
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path(format!("/api/0.6/changeset/{}/comment", changeset_id)))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+        // WHEN
+        let actual = client
+            .changeset()
+            .comment(changeset_id, comment)
+            .await
+            .unwrap();
+
+        // THEN
+        assert_eq!(actual, ());
     }
 }

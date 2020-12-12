@@ -28,7 +28,11 @@ impl Permissions {
     pub async fn get(&self) -> Result<Vec<types::Permission>, OpenstreetmapError> {
         let permissions = self
             .client
-            .request_including_version::<(), Osm>(reqwest::Method::GET, "permissions", None)
+            .request_including_version::<(), Osm>(
+                reqwest::Method::GET,
+                "permissions",
+                types::RequestBody::None,
+            )
             .await?
             .inner_permissions
             .permissions;

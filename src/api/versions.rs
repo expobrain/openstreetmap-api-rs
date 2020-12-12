@@ -1,3 +1,4 @@
+use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
 
@@ -27,7 +28,12 @@ impl Versions {
     pub async fn get(&self) -> Result<Vec<String>, OpenstreetmapError> {
         let versions = self
             .client
-            .request::<(), Osm>(reqwest::Method::GET, None, "versions", None)
+            .request::<(), Osm>(
+                reqwest::Method::GET,
+                None,
+                "versions",
+                types::RequestBody::None,
+            )
             .await?
             .versions
             .into_iter()
@@ -41,7 +47,6 @@ impl Versions {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types;
     use rstest::*;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};

@@ -1,6 +1,14 @@
+use serde::ser::Serialize;
+
 #[derive(Debug, Clone)]
 pub enum Credentials {
     Basic(String, String), // Username, password
+}
+
+pub enum RequestBody<S: Serialize> {
+    Xml(S),
+    Form(S),
+    None,
 }
 
 #[derive(Debug, PartialEq)]

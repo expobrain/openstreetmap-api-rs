@@ -10,6 +10,7 @@ mod types;
 use errors::OpenstreetmapError;
 use quick_xml::de::from_reader;
 use quick_xml::se::to_string;
+use reqwest::header::CONTENT_TYPE;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
@@ -89,7 +90,7 @@ impl Openstreetmap {
         &self,
         method: reqwest::Method,
         endpoint: &str,
-        body: Option<S>,
+        body: types::RequestBody<S>,
     ) -> Result<D, OpenstreetmapError>
     where
         S: Serialize,
@@ -104,7 +105,7 @@ impl Openstreetmap {
         method: reqwest::Method,
         version: Option<&str>,
         endpoint: &str,
-        body: Option<S>,
+        body: types::RequestBody<S>,
     ) -> Result<D, OpenstreetmapError>
     where
         S: Serialize,
@@ -126,9 +127,13 @@ impl Openstreetmap {
             types::Credentials::Basic(ref user, ref pass) => req.basic_auth(user, Some(pass)),
         };
 
-        if let Some(payload) = body {
-            builder = builder.body(to_string(&payload)?.into_bytes())
-        }
+        builder = match body {
+            types::RequestBody::Xml(payload) => builder
+                .body(to_string(&payload)?.into_bytes())
+                .header(CONTENT_TYPE, "text/xml"),
+            types::RequestBody::Form(payload) => builder.form(&payload),
+            types::RequestBody::None => builder,
+        };
 
         let res = builder.send().await?;
 
