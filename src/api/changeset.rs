@@ -207,6 +207,44 @@ impl Changeset {
 
         Ok(())
     }
+
+    pub async fn subscribe(
+        &self,
+        changeset_id: u64,
+    ) -> Result<types::Changeset, OpenstreetmapError> {
+        let url = format!("changeset/{}/subscribe", changeset_id);
+
+        let changeset = self
+            .client
+            .request_including_version::<(), Osm>(
+                reqwest::Method::POST,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?
+            .changeset;
+
+        Ok(changeset)
+    }
+
+    pub async fn unsubscribe(
+        &self,
+        changeset_id: u64,
+    ) -> Result<types::Changeset, OpenstreetmapError> {
+        let url = format!("changeset/{}/unsubscribe", changeset_id);
+
+        let changeset = self
+            .client
+            .request_including_version::<(), Osm>(
+                reqwest::Method::POST,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?
+            .changeset;
+
+        Ok(changeset)
+    }
 }
 
 #[cfg(test)]
@@ -709,5 +747,131 @@ mod tests {
 
         // THEN
         assert_eq!(actual, ());
+    }
+
+    #[rstest(changeset_id, response_str, expected,
+        case(
+            10,
+            r#"
+            <osm>
+                <changeset id="10" user="fred" uid="123" created_at="2008-11-08T19:07:39+01:00" open="true" min_lon="7.0191821" min_lat="49.2785426" max_lon="7.0197485" max_lat="49.2793101">
+                    <tag k="created_by" v="JOSM 1.61"/>
+                </changeset>
+            </osm>
+            "#,
+            types::Changeset {
+                id: 10,
+                user: "fred".into(),
+                uid: 123,
+                created_at: "2008-11-08T19:07:39+01:00".into(),
+                closed_at: None,
+                open: true,
+                min_lon: Some(7.0191821),
+                min_lat: Some(49.2785426),
+                max_lon: Some(7.0197485),
+                max_lat: Some(49.2793101),
+                discussion: None,
+                tags: vec![types::Tag {
+                    k: "created_by".into(),
+                    v: "JOSM 1.61".into(),
+                }],
+            }
+        )
+    )]
+    #[actix_rt::test]
+    async fn test_subscribe(
+        credentials: types::Credentials,
+        changeset_id: u64,
+        response_str: &str,
+        expected: types::Changeset,
+    ) {
+        /*
+        GIVEN an OSM client
+        WHEN calling the subscribe() function with a changeset ID
+        THEN returns the subscribed changeset
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path(format!(
+                "/api/0.6/changeset/{}/subscribe",
+                changeset_id
+            )))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+        // WHEN
+        let actual = client.changeset().subscribe(changeset_id).await.unwrap();
+
+        // THEN
+        assert_eq!(actual, expected);
+    }
+
+    #[rstest(changeset_id, response_str, expected,
+        case(
+            10,
+            r#"
+            <osm>
+                <changeset id="10" user="fred" uid="123" created_at="2008-11-08T19:07:39+01:00" open="true" min_lon="7.0191821" min_lat="49.2785426" max_lon="7.0197485" max_lat="49.2793101">
+                    <tag k="created_by" v="JOSM 1.61"/>
+                </changeset>
+            </osm>
+            "#,
+            types::Changeset {
+                id: 10,
+                user: "fred".into(),
+                uid: 123,
+                created_at: "2008-11-08T19:07:39+01:00".into(),
+                closed_at: None,
+                open: true,
+                min_lon: Some(7.0191821),
+                min_lat: Some(49.2785426),
+                max_lon: Some(7.0197485),
+                max_lat: Some(49.2793101),
+                discussion: None,
+                tags: vec![types::Tag {
+                    k: "created_by".into(),
+                    v: "JOSM 1.61".into(),
+                }],
+            }
+        )
+    )]
+    #[actix_rt::test]
+    async fn test_unsubscribe(
+        credentials: types::Credentials,
+        changeset_id: u64,
+        response_str: &str,
+        expected: types::Changeset,
+    ) {
+        /*
+        GIVEN an OSM client
+        WHEN calling the unsubscribe() function with a changeset ID
+        THEN returns the unsubscribed changeset
+        */
+
+        // GIVEN
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .and(path(format!(
+                "/api/0.6/changeset/{}/unsubscribe",
+                changeset_id
+            )))
+            .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+            .mount(&mock_server)
+            .await;
+
+        let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+        // WHEN
+        let actual = client.changeset().unsubscribe(changeset_id).await.unwrap();
+
+        // THEN
+        assert_eq!(actual, expected);
     }
 }
