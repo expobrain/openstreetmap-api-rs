@@ -78,6 +78,11 @@ impl Openstreetmap {
     }
 
     #[inline]
+    pub fn nodes(&self) -> api::elements::Elements<types::Node> {
+        api::elements::Elements::new(self)
+    }
+
+    #[inline]
     pub async fn changesets(
         &self,
         query: &api::changesets::Query,
