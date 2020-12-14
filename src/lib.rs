@@ -4,8 +4,8 @@ extern crate log;
 extern crate serde_derive;
 
 mod api;
-mod errors;
-mod types;
+pub mod errors;
+pub mod types;
 
 use errors::OpenstreetmapError;
 use quick_xml::de::from_reader;
@@ -85,7 +85,7 @@ impl Openstreetmap {
     #[inline]
     pub async fn changesets(
         &self,
-        query: api::changesets::Query,
+        query: types::ChangesetQueryParams,
     ) -> Result<Vec<types::Changeset>, OpenstreetmapError> {
         Ok(api::changesets::Changesets::new(self).get(query).await?)
     }
