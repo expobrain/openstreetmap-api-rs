@@ -39,97 +39,7 @@ pub struct Query {
     pub changeset_ids: Option<Vec<u64>>,
 }
 
-#[derive(Debug, Default)]
-pub struct QueryBuilder {
-    bbox: Option<types::BoundingBox>,
-    user_id: Option<u64>,
-    display_name: Option<String>,
-    closed_after: Option<String>,
-    created_before: Option<String>,
-    open: Option<bool>,
-    closed: Option<bool>,
-    changeset_ids: Option<Vec<u64>>,
-}
-
-impl QueryBuilder {
-    #[allow(dead_code)]
-    #[inline]
-    pub fn new() -> Self {
-        QueryBuilder::default()
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_user_id(mut self, user_id: u64) -> Self {
-        self.user_id = Some(user_id);
-        self
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_bbox(mut self, bbox: types::BoundingBox) -> Self {
-        self.bbox = Some(bbox);
-        self
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_display_name(mut self, display_name: &str) -> Self {
-        self.display_name = Some(display_name.into());
-        self
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_closed_after(mut self, closed_after: &str) -> Self {
-        self.closed_after = Some(closed_after.into());
-        self
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_created_before(mut self, created_before: &str) -> Self {
-        self.created_before = Some(created_before.into());
-        self
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_open(mut self, open: bool) -> Self {
-        self.open = Some(open);
-        self
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_closed(mut self, closed: bool) -> Self {
-        self.closed = Some(closed);
-        self
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn with_changeset_ids(mut self, changeset_ids: Vec<u64>) -> Self {
-        self.changeset_ids = Some(changeset_ids);
-        self
-    }
-
-    #[allow(dead_code)]
-    pub fn build(self) -> Query {
-        Query {
-            bbox: self.bbox,
-            user_id: self.user_id,
-            display_name: self.display_name,
-            closed_after: self.closed_after,
-            created_before: self.created_before,
-            open: self.open,
-            closed: self.closed,
-            changeset_ids: self.changeset_ids,
-        }
-    }
-}
-
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 struct RawQuery {
     #[serde(serialize_with = "vec_to_string")]
     pub bbox: Option<Vec<f64>>,
@@ -143,22 +53,22 @@ struct RawQuery {
     pub changesets: Option<Vec<u64>>,
 }
 
-impl From<&Query> for RawQuery {
-    fn from(query: &Query) -> Self {
+impl From<Query> for RawQuery {
+    fn from(query: Query) -> Self {
         RawQuery {
             bbox: query
                 .bbox
                 .map(|bbox| vec![bbox.left, bbox.bottom, bbox.right, bbox.top]),
             user: query.user_id,
             display_name: query.display_name.clone(),
-            time: match (&query.closed_after, &query.created_before) {
-                (Some(t1), None) => Some(vec![t1.clone()]),
-                (Some(t1), Some(t2)) => Some(vec![t1.clone(), t2.clone()]),
+            time: match (query.closed_after, query.created_before) {
+                (Some(t1), None) => Some(vec![t1]),
+                (Some(t1), Some(t2)) => Some(vec![t1, t2]),
                 _ => None,
             },
             open: query.open,
             closed: query.closed,
-            changesets: query.changeset_ids.clone(),
+            changesets: query.changeset_ids,
         }
     }
 }
@@ -181,7 +91,7 @@ impl Changesets {
         }
     }
 
-    pub async fn get(&self, query: &Query) -> Result<Vec<types::Changeset>, OpenstreetmapError> {
+    pub async fn get(&self, query: Query) -> Result<Vec<types::Changeset>, OpenstreetmapError> {
         let raw_query: RawQuery = query.into();
         let qs = serde_urlencoded::to_string(raw_query)?;
 
@@ -231,35 +141,15 @@ mod tests {
     }
 
     #[test]
-    fn test_query_builder() {
+    fn test_query_raw_from() {
         /*
-        GIVEN a QueryBuilder
-            AND setting al the attributes
+        GIVEN a Query with all attributes set
         WHEN building
         THEN a Query is returned
             AND all attribues are set
         */
         // GIVEN
-        let builder = QueryBuilder::new()
-            .with_bbox(types::BoundingBox {
-                left: 1.0,
-                bottom: 2.0,
-                right: 3.0,
-                top: 4.0,
-            })
-            .with_user_id(123)
-            .with_display_name("user")
-            .with_closed_after("2020-12-09T22:51:17Z")
-            .with_created_before("2020-11-09T22:51:17Z")
-            .with_open(true)
-            .with_closed(false)
-            .with_changeset_ids(vec![1, 2, 3]);
-
-        // WHEN
-        let query = builder.build();
-
-        // THEN
-        let expected = Query {
+        let query = Query {
             bbox: Some(types::BoundingBox {
                 left: 1.0,
                 bottom: 2.0,
@@ -273,9 +163,27 @@ mod tests {
             open: Some(true),
             closed: Some(false),
             changeset_ids: Some(vec![1, 2, 3]),
+            ..Default::default()
         };
 
-        assert_eq!(query, expected);
+        // WHEN
+        let raw_query: RawQuery = query.into();
+
+        // THEN
+        let expected = RawQuery {
+            bbox: Some(vec![1.0, 2.0, 3.0, 4.0]),
+            user: Some(123),
+            display_name: Some("user".into()),
+            time: Some(vec![
+                "2020-12-09T22:51:17Z".into(),
+                "2020-11-09T22:51:17Z".into(),
+            ]),
+            open: Some(true),
+            closed: Some(false),
+            changesets: Some(vec![1, 2, 3]),
+        };
+
+        assert_eq!(raw_query, expected);
     }
 
     #[test]
@@ -363,7 +271,7 @@ mod tests {
 
         // WHEN
         let query = Query::default();
-        let actual = client.changesets(&query).await.unwrap();
+        let actual = client.changesets(query).await.unwrap();
 
         // THEN
         assert_eq!(actual, expected);
@@ -393,13 +301,12 @@ mod tests {
 
         // WHEN
         let query = Query {
-            bbox: None,
-            // bbox: Some(types::BoundingBox {
-            //     left: 1.0,
-            //     bottom: 2.0,
-            //     right: 3.0,
-            //     top: 4.0,
-            // }),
+            bbox: Some(types::BoundingBox {
+                left: 1.0,
+                bottom: 2.0,
+                right: 3.0,
+                top: 4.0,
+            }),
             user_id: Some(123),
             display_name: None,
             closed_after: None,
@@ -409,7 +316,7 @@ mod tests {
             changeset_ids: None,
         };
 
-        let actual = client.changesets(&query).await.unwrap();
+        let actual = client.changesets(query).await.unwrap();
 
         // THEN
         assert_eq!(actual.is_empty(), false);
