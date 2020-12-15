@@ -81,6 +81,7 @@ impl Tag {
 }
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename = "node")]
 pub struct Node {
     pub id: u64,
     pub visible: bool,
@@ -111,6 +112,7 @@ pub struct Member {
 }
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename = "way")]
 pub struct Way {
     pub id: u64,
     pub visible: bool,
@@ -126,6 +128,7 @@ pub struct Way {
 }
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename = "relation")]
 pub struct Relation {
     pub id: u64,
     pub visible: bool,

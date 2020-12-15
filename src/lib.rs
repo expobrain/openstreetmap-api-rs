@@ -83,6 +83,16 @@ impl Openstreetmap {
     }
 
     #[inline]
+    pub fn ways(&self) -> api::elements::Elements<types::Way> {
+        api::elements::Elements::new(self)
+    }
+
+    #[inline]
+    pub fn relations(&self) -> api::elements::Elements<types::Relation> {
+        api::elements::Elements::new(self)
+    }
+
+    #[inline]
     pub async fn changesets(
         &self,
         query: types::ChangesetQueryParams,
