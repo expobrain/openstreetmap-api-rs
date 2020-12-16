@@ -116,3 +116,55 @@ async fn test_get(
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(element, response_str, expected,
+    case(
+        types::Node {
+            id: 1234,
+            changeset: 42,
+            version: 2,
+            uid: 1,
+            timestamp: "2009-12-09T08:19:00Z".into(),
+            user: "user".into(),
+            visible: true,
+            lat: 12.1234567,
+            lon: -8.7654321,
+            tags: vec![types::Tag {
+                k: "amenity".into(),
+                v: "school".into(),
+            }],
+        },
+        "10",
+        10
+    )
+)]
+#[actix_rt::test]
+async fn test_update_element(
+    credentials: types::Credentials,
+    element: types::Node,
+    response_str: &str,
+    expected: u64,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the update() function
+    THEN returns the ID of the updated node
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("PUT"))
+        .and(path(format!("/api/0.6/node/{}", element.id)))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "text/plain"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.nodes().update(element).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}

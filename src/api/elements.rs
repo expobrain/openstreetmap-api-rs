@@ -9,12 +9,18 @@ use std::marker::PhantomData;
 
 pub trait OpenstreetmapNode {
     fn base_url() -> String;
+    fn id(&self) -> u64;
 }
 
 impl OpenstreetmapNode for types::Node {
     #[inline]
     fn base_url() -> String {
         "node/".into()
+    }
+
+    #[inline]
+    fn id(&self) -> u64 {
+        self.id
     }
 }
 
@@ -23,12 +29,22 @@ impl OpenstreetmapNode for types::Way {
     fn base_url() -> String {
         "way/".into()
     }
+
+    #[inline]
+    fn id(&self) -> u64 {
+        self.id
+    }
 }
 
 impl OpenstreetmapNode for types::Relation {
     #[inline]
     fn base_url() -> String {
         "relation/".into()
+    }
+
+    #[inline]
+    fn id(&self) -> u64 {
+        self.id
     }
 }
 
@@ -253,6 +269,18 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
             .element;
 
         Ok(element)
+    }
+
+    pub async fn update(&self, element: E) -> Result<u64, OpenstreetmapError> {
+        let url = format!("{}{}", E::base_url(), element.id());
+        let body = types::RequestBody::Xml(Osm::new(element));
+
+        let version = self
+            .client
+            .request_including_version::<Osm<E>, u64>(reqwest::Method::PUT, &url, body)
+            .await?;
+
+        Ok(version)
     }
 }
 
