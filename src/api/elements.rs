@@ -282,6 +282,18 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
         Ok(version)
     }
+
+    pub async fn delete(&self, element: E) -> Result<u64, OpenstreetmapError> {
+        let url = format!("{}{}", E::base_url(), element.id());
+        let body = types::RequestBody::Xml(Osm::new(element));
+
+        let version = self
+            .client
+            .request_including_version::<Osm<E>, u64>(reqwest::Method::DELETE, &url, body)
+            .await?;
+
+        Ok(version)
+    }
 }
 
 #[cfg(test)]
