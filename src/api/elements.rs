@@ -83,6 +83,8 @@ where
     {
         enum Field {
             Node,
+            Way,
+            Relation,
             None,
         }
 
@@ -101,9 +103,11 @@ where
             {
                 match value {
                     0u64 => Ok(Field::Node),
+                    1u64 => Ok(Field::Way),
+                    2u64 => Ok(Field::Relation),
                     _ => Err(de::Error::invalid_value(
                         de::Unexpected::Unsigned(value),
-                        &"field index 0 <= i < 1",
+                        &"field index 0 <= i < 3",
                     )),
                 }
             }
@@ -114,6 +118,8 @@ where
             {
                 match value {
                     "node" => Ok(Field::Node),
+                    "way" => Ok(Field::Way),
+                    "relation" => Ok(Field::Relation),
                     _ => Ok(Field::None),
                 }
             }
@@ -124,6 +130,8 @@ where
             {
                 match value {
                     b"node" => Ok(Field::Node),
+                    b"way" => Ok(Field::Way),
+                    b"relation" => Ok(Field::Relation),
                     _ => Ok(Field::None),
                 }
             }
@@ -180,16 +188,16 @@ where
             where
                 A: de::MapAccess<'de>,
             {
-                let mut node: Option<E> = None;
+                let mut value: Option<E> = None;
 
                 while let Some(key) = de::MapAccess::next_key::<Field>(&mut map)? {
                     match key {
-                        Field::Node => {
-                            if node.is_some() {
+                        Field::Node | Field::Way | Field::Relation => {
+                            if value.is_some() {
                                 return Err(<A::Error as de::Error>::duplicate_field("element"));
                             }
 
-                            node = Some(de::MapAccess::next_value::<E>(&mut map)?);
+                            value = Some(de::MapAccess::next_value::<E>(&mut map)?);
                         }
                         _ => {
                             de::MapAccess::next_value::<de::IgnoredAny>(&mut map)?;
@@ -197,8 +205,8 @@ where
                     }
                 }
 
-                let element = match node {
-                    Some(node) => node,
+                let element = match value {
+                    Some(v) => v,
                     None => serde::private::de::missing_field("element")?,
                 };
 
@@ -509,6 +517,70 @@ mod test {
                 r#"</node>"#,
                 r#"</osm>"#,
             ].join("")
+        ),
+        case(
+            types::Way {
+                id: 49780,
+                visible: true,
+                version: 1,
+                changeset: 2308,
+                timestamp: "2009-12-09T08:51:50Z".into(),
+                user: "guggis".into(),
+                uid: 1,
+                node_refs: vec![
+                    types::NodeRef { node_id: 1150401 },
+                    types::NodeRef { node_id: 1150400 },
+                ],
+                tags: vec![types::Tag {
+                    k: "random-key.1".into(),
+                    v: "random-value.1".into(),
+                }],
+            },
+            vec![
+                r#"<osm>"#,
+                r#"<way id="49780" visible="true" version="1" changeset="2308" timestamp="2009-12-09T08:51:50Z" user="guggis" uid="1">"#,
+                r#"<nd ref="1150401"/>"#,
+                r#"<nd ref="1150400"/>"#,
+                r#"<tag k="random-key.1" v="random-value.1"/>"#,
+                r#"</way>"#,
+                r#"</osm>"#,
+            ].join("")
+        ),
+        case(
+            types::Relation {
+                id: 4507,
+                visible: true,
+                version: 1,
+                changeset: 3198,
+                timestamp: "2010-02-25T19:52:18Z".into(),
+                user: "rus".into(),
+                uid: 96,
+                members: vec![
+                    types::Member {
+                        member_type: "way".into(),
+                        node_id: 80976,
+                        role: "outer".into(),
+                    },
+                    types::Member {
+                        member_type: "way".into(),
+                        node_id: 80977,
+                        role: "outer".into(),
+                    },
+                ],
+                tags: vec![types::Tag {
+                    k: "type".into(),
+                    v: "multipolygon".into(),
+                }],
+            },
+            vec![
+                r#"<osm>"#,
+                r#"<relation id="4507" visible="true" version="1" changeset="3198" timestamp="2010-02-25T19:52:18Z" user="rus" uid="96">"#,
+                r#"<tag k="type" v="multipolygon"/>"#,
+                r#"<member type="way" ref="80976" role="outer"/>"#,
+                r#"<member type="way" ref="80977" role="outer"/>"#,
+                r#"</relation>"#,
+                r#"</osm>"#,
+            ].join("")
         )
     )]
     fn test_osm_serialise<E>(element: E, expected: String)
@@ -553,6 +625,74 @@ mod test {
                     tags: vec![types::Tag {
                         k: "amenity".into(),
                         v: "school".into(),
+                    }],
+                }
+            }
+        ),
+        case(
+            r#"
+            <osm>
+                <way id="49780" visible="true" version="1" changeset="2308" timestamp="2009-12-09T08:51:50Z" user="guggis" uid="1">
+                    <nd ref="1150401"/>
+                    <nd ref="1150400"/>
+                    <tag k="random-key.1" v="random-value.1"/>
+                </way>
+            </osm>
+            "#,
+            Osm{
+                element: types::Way {
+                    id: 49780,
+                    visible: true,
+                    version: 1,
+                    changeset: 2308,
+                    timestamp: "2009-12-09T08:51:50Z".into(),
+                    user: "guggis".into(),
+                    uid: 1,
+                    node_refs: vec![
+                        types::NodeRef { node_id: 1150401 },
+                        types::NodeRef { node_id: 1150400 },
+                    ],
+                    tags: vec![types::Tag {
+                        k: "random-key.1".into(),
+                        v: "random-value.1".into(),
+                    }],
+                }
+            }
+        ),
+        case(
+            r#"
+            <osm>
+                <relation id="4507" visible="true" version="1" changeset="3198" timestamp="2010-02-25T19:52:18Z" user="rus" uid="96">
+                    <member type="way" ref="80976" role="outer"/>
+                    <member type="way" ref="80977" role="outer"/>
+                    <tag k="type" v="multipolygon"/>
+                </relation>
+            </osm>
+            "#,
+            Osm{
+                element: types::Relation {
+                    id: 4507,
+                    visible: true,
+                    version: 1,
+                    changeset: 3198,
+                    timestamp: "2010-02-25T19:52:18Z".into(),
+                    user: "rus".into(),
+                    uid: 96,
+                    members: vec![
+                        types::Member {
+                            member_type: "way".into(),
+                            node_id: 80976,
+                            role: "outer".into(),
+                        },
+                        types::Member {
+                            member_type: "way".into(),
+                            node_id: 80977,
+                            role: "outer".into(),
+                        },
+                    ],
+                    tags: vec![types::Tag {
+                        k: "type".into(),
+                        v: "multipolygon".into(),
                     }],
                 }
             }
