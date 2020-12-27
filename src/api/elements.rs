@@ -466,6 +466,21 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
         Ok(elements)
     }
+
+    pub async fn version(&self, element_id: u64, version_id: u64) -> Result<E, OpenstreetmapError> {
+        let url = format!("{}{}/{}", E::base_url(), element_id, version_id);
+        let element = self
+            .client
+            .request_including_version::<u64, Osm<E>>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?
+            .element;
+
+        Ok(element)
+    }
 }
 
 #[cfg(test)]

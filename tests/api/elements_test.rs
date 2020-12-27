@@ -278,3 +278,67 @@ async fn test_history(
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(element_id, version_id, response_str, expected,
+    case(
+        1234,
+        1,
+        r#"
+        <osm>
+            <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                <tag k="amenity" v="school"/>
+            </node>
+        </osm>
+        "#,
+        types::Node {
+            id: 1234,
+            changeset: 42,
+            version: 2,
+            uid: 1,
+            timestamp: "2009-12-09T08:19:00Z".into(),
+            user: "user".into(),
+            visible: true,
+            lat: 12.1234567,
+            lon: -8.7654321,
+            tags: vec![types::Tag {
+                k: "amenity".into(),
+                v: "school".into(),
+            }],
+        },
+    )
+)]
+#[actix_rt::test]
+async fn test_version(
+    credentials: types::Credentials,
+    element_id: u64,
+    version_id: u64,
+    response_str: &str,
+    expected: types::Node,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the version() function
+    THEN returns the node at specified version
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/node/{}/{}", element_id, version_id)))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client
+        .nodes()
+        .version(element_id, version_id)
+        .await
+        .unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}
