@@ -1,4 +1,5 @@
 use serde::ser::Serialize;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum Credentials {
@@ -295,4 +296,27 @@ pub struct ChangesetQueryParams {
     pub open: Option<bool>,
     pub closed: Option<bool>,
     pub changeset_ids: Option<Vec<u64>>,
+}
+
+#[derive(Debug, Default, PartialEq)]
+pub struct ElementIdParam {
+    pub id: u64,
+    pub version: Option<u64>,
+}
+
+impl ElementIdParam {
+    pub fn new(id: u64, version: Option<u64>) -> Self {
+        Self { id, version }
+    }
+}
+
+impl fmt::Display for ElementIdParam {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            self.id,
+            self.version.map_or("".to_string(), |v| format!("v{}", v))
+        )
+    }
 }

@@ -2,7 +2,7 @@ use openstreetmap_api::types;
 use openstreetmap_api::Openstreetmap;
 use pretty_assertions::assert_eq;
 use rstest::*;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{method, path, query_param, QueryParamExactMatcher};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::utils::credentials;
@@ -338,6 +338,136 @@ async fn test_version(
         .version(element_id, version_id)
         .await
         .unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}
+
+#[rstest(element_id_params, request_qs, response_str, expected,
+    case(
+        vec![types::ElementIdParam::new(1234, None)],
+        query_param("nodes", "1234"),
+        r#"
+        <osm>
+            <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                <tag k="amenity" v="school"/>
+            </node>
+        </osm>
+        "#,
+        vec![types::Node {
+            id: 1234,
+            changeset: 42,
+            version: 2,
+            uid: 1,
+            timestamp: "2009-12-09T08:19:00Z".into(),
+            user: "user".into(),
+            visible: true,
+            lat: 12.1234567,
+            lon: -8.7654321,
+            tags: vec![types::Tag {
+                k: "amenity".into(),
+                v: "school".into(),
+            }],
+        }],
+    ),
+    case(
+        vec![types::ElementIdParam::new(1234, Some(2))],
+        query_param("nodes", "1234v2"),
+        r#"
+        <osm>
+            <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                <tag k="amenity" v="school"/>
+            </node>
+        </osm>
+        "#,
+        vec![types::Node {
+            id: 1234,
+            changeset: 42,
+            version: 2,
+            uid: 1,
+            timestamp: "2009-12-09T08:19:00Z".into(),
+            user: "user".into(),
+            visible: true,
+            lat: 12.1234567,
+            lon: -8.7654321,
+            tags: vec![types::Tag {
+                k: "amenity".into(),
+                v: "school".into(),
+            }],
+        }],
+    ),
+    case(
+        vec![
+            types::ElementIdParam::new(1234, None),
+            types::ElementIdParam::new(2000, None)
+        ],
+        query_param("nodes", "1234,2000"),
+        r#"
+        <osm>
+            <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true">
+                <tag k="amenity" v="school"/>
+            </node>
+            <node id="2000" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true" />
+        </osm>
+        "#,
+        vec![
+            types::Node {
+                id: 1234,
+                changeset: 42,
+                version: 2,
+                uid: 1,
+                timestamp: "2009-12-09T08:19:00Z".into(),
+                user: "user".into(),
+                visible: true,
+                lat: 12.1234567,
+                lon: -8.7654321,
+                tags: vec![types::Tag {
+                    k: "amenity".into(),
+                    v: "school".into(),
+                }],
+            },
+            types::Node {
+                id: 2000,
+                changeset: 42,
+                version: 2,
+                uid: 1,
+                timestamp: "2009-12-09T08:19:00Z".into(),
+                user: "user".into(),
+                visible: true,
+                lat: 12.1234567,
+                lon: -8.7654321,
+                tags: vec![],
+            },
+        ],
+    )
+)]
+#[actix_rt::test]
+async fn test_multi_get(
+    credentials: types::Credentials,
+    element_id_params: Vec<types::ElementIdParam>,
+    request_qs: QueryParamExactMatcher,
+    response_str: &str,
+    expected: Vec<types::Node>,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the multi_get() function
+    THEN returns the list of nodes
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/nodes/")))
+        .and(request_qs)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.nodes().multi_get(element_id_params).await.unwrap();
 
     // THEN
     assert_eq!(actual, expected);

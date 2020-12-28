@@ -9,6 +9,8 @@ use std::marker::PhantomData;
 
 pub trait OpenstreetmapNode {
     fn base_url() -> String;
+    fn base_url_plural() -> String;
+    fn element_name_plural() -> String;
     fn id(&self) -> u64;
 }
 
@@ -16,6 +18,16 @@ impl OpenstreetmapNode for types::Node {
     #[inline]
     fn base_url() -> String {
         "node/".into()
+    }
+
+    #[inline]
+    fn base_url_plural() -> String {
+        "nodes/".into()
+    }
+
+    #[inline]
+    fn element_name_plural() -> String {
+        "nodes".into()
     }
 
     #[inline]
@@ -31,6 +43,16 @@ impl OpenstreetmapNode for types::Way {
     }
 
     #[inline]
+    fn base_url_plural() -> String {
+        "ways/".into()
+    }
+
+    #[inline]
+    fn element_name_plural() -> String {
+        "ways".into()
+    }
+
+    #[inline]
     fn id(&self) -> u64 {
         self.id
     }
@@ -40,6 +62,16 @@ impl OpenstreetmapNode for types::Relation {
     #[inline]
     fn base_url() -> String {
         "relation/".into()
+    }
+
+    #[inline]
+    fn base_url_plural() -> String {
+        "relations/".into()
+    }
+
+    #[inline]
+    fn element_name_plural() -> String {
+        "relations".into()
     }
 
     #[inline]
@@ -480,6 +512,31 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
             .element;
 
         Ok(element)
+    }
+
+    pub async fn multi_get(
+        &self,
+        element_id_params: Vec<types::ElementIdParam>,
+    ) -> Result<Vec<E>, OpenstreetmapError> {
+        let element_id_params_raw = element_id_params
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<String>>()
+            .join(",");
+        let qs = serde_urlencoded::to_string(&[(E::element_name_plural(), element_id_params_raw)])?;
+        let url = format!("{}?{}", E::base_url_plural(), qs);
+
+        let elements = self
+            .client
+            .request_including_version::<u64, OsmList<E>>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?
+            .elements;
+
+        Ok(elements)
     }
 }
 

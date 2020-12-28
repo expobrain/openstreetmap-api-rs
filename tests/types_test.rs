@@ -165,3 +165,56 @@ fn test_changeset_change_deserilise_xml(data: &str, expected: ChangesetChanges) 
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(
+    element_id_param,
+    expected,
+    case(
+        ElementIdParam { id: 1, version: None },
+        "1",
+    ),
+    case(
+        ElementIdParam { id: 1, version: Some(1) },
+        "1v1",
+    )
+)]
+fn test_element_id_param_display(element_id_param: ElementIdParam, expected: &str) {
+    /*
+    GIVEN an ElementIdParam instance
+    WHEN rendering to a string
+    THEN the string matches the expectation
+    */
+    // WHEN
+    let actual = format!("{}", element_id_param);
+
+    // THEN
+    assert_eq!(actual, expected);
+}
+
+#[rstest(
+    id,
+    version,
+    expected,
+    case(
+        1,
+        None,
+        ElementIdParam { id: 1, version: None },
+    ),
+    case(
+        1,
+        Some(1),
+        ElementIdParam { id: 1, version: Some(1) },
+    )
+)]
+fn test_element_id_param_new(id: u64, version: Option<u64>, expected: ElementIdParam) {
+    /*
+    GIVEN an id and version
+    WHEN calling new()
+    THEN an ElementIdParam struct is returned
+    */
+    // WHEN
+    let actual = ElementIdParam::new(id, version);
+
+    // THEN
+    assert_eq!(actual, expected);
+}
