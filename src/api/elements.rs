@@ -81,17 +81,17 @@ impl OpenstreetmapNode for types::Relation {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Osm<E> {
+pub struct OsmSingle<E> {
     element: E,
 }
 
-impl<E: OpenstreetmapNode> Osm<E> {
+impl<E: OpenstreetmapNode> OsmSingle<E> {
     pub fn new(element: E) -> Self {
-        Osm { element }
+        Self { element }
     }
 }
 
-impl<E: OpenstreetmapNode> Serialize for Osm<E>
+impl<E: OpenstreetmapNode> Serialize for OsmSingle<E>
 where
     E: OpenstreetmapNode + Serialize,
 {
@@ -105,7 +105,7 @@ where
     }
 }
 
-impl<'de, E: OpenstreetmapNode> Deserialize<'de> for Osm<E>
+impl<'de, E: OpenstreetmapNode> Deserialize<'de> for OsmSingle<E>
 where
     E: Deserialize<'de>,
 {
@@ -183,7 +183,7 @@ where
         where
             E: Deserialize<'de>,
         {
-            marker: PhantomData<Osm<E>>,
+            marker: PhantomData<OsmSingle<E>>,
             lifetime: PhantomData<&'de ()>,
         }
 
@@ -191,7 +191,7 @@ where
         where
             E: Deserialize<'de>,
         {
-            type Value = Osm<E>;
+            type Value = OsmSingle<E>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 fmt::Formatter::write_str(formatter, "struct Osm")
@@ -212,7 +212,7 @@ where
                     }
                 };
 
-                Ok(Osm { element })
+                Ok(OsmSingle { element })
             }
 
             #[inline]
@@ -242,7 +242,7 @@ where
                     None => serde::private::de::missing_field("element")?,
                 };
 
-                Ok(Osm { element })
+                Ok(OsmSingle { element })
             }
         }
 
@@ -253,7 +253,7 @@ where
             "Osm",
             FIELDS,
             Visitor {
-                marker: PhantomData::<Osm<E>>,
+                marker: PhantomData::<OsmSingle<E>>,
                 lifetime: PhantomData,
             },
         )
@@ -435,11 +435,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
     pub async fn create(&self, element: E) -> Result<u64, OpenstreetmapError> {
         let url = format!("{}create", E::base_url());
-        let body = types::RequestBody::Xml(Osm::new(element));
+        let body = types::RequestBody::Xml(OsmSingle::new(element));
 
         let element_id = self
             .client
-            .request_including_version::<Osm<E>, u64>(reqwest::Method::PUT, &url, body)
+            .request_including_version::<OsmSingle<E>, u64>(reqwest::Method::PUT, &url, body)
             .await?;
 
         Ok(element_id)
@@ -449,7 +449,7 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
         let url = format!("{}{}", E::base_url(), element_id);
         let element = self
             .client
-            .request_including_version::<u64, Osm<E>>(
+            .request_including_version::<u64, OsmSingle<E>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
@@ -462,11 +462,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
     pub async fn update(&self, element: E) -> Result<u64, OpenstreetmapError> {
         let url = format!("{}{}", E::base_url(), element.id());
-        let body = types::RequestBody::Xml(Osm::new(element));
+        let body = types::RequestBody::Xml(OsmSingle::new(element));
 
         let version = self
             .client
-            .request_including_version::<Osm<E>, u64>(reqwest::Method::PUT, &url, body)
+            .request_including_version::<OsmSingle<E>, u64>(reqwest::Method::PUT, &url, body)
             .await?;
 
         Ok(version)
@@ -474,11 +474,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
     pub async fn delete(&self, element: E) -> Result<u64, OpenstreetmapError> {
         let url = format!("{}{}", E::base_url(), element.id());
-        let body = types::RequestBody::Xml(Osm::new(element));
+        let body = types::RequestBody::Xml(OsmSingle::new(element));
 
         let version = self
             .client
-            .request_including_version::<Osm<E>, u64>(reqwest::Method::DELETE, &url, body)
+            .request_including_version::<OsmSingle<E>, u64>(reqwest::Method::DELETE, &url, body)
             .await?;
 
         Ok(version)
@@ -503,7 +503,7 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
         let url = format!("{}{}/{}", E::base_url(), element_id, version_id);
         let element = self
             .client
-            .request_including_version::<u64, Osm<E>>(
+            .request_including_version::<u64, OsmSingle<E>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
@@ -700,7 +700,7 @@ mod test {
         THEN returns the expected string
         */
         // GIVEN
-        let osm = Osm::new(element);
+        let osm = OsmSingle::new(element);
 
         // WHEN
         let actual = to_string(&osm).unwrap();
@@ -718,7 +718,7 @@ mod test {
                 </node>
             </osm>
             "#,
-            Osm{
+            OsmSingle {
                 element: types::Node {
                     id: 1234,
                     changeset: 42,
@@ -746,7 +746,7 @@ mod test {
                 </way>
             </osm>
             "#,
-            Osm{
+            OsmSingle {
                 element: types::Way {
                     id: 49780,
                     visible: true,
@@ -776,7 +776,7 @@ mod test {
                 </relation>
             </osm>
             "#,
-            Osm{
+            OsmSingle {
                 element: types::Relation {
                     id: 4507,
                     visible: true,
@@ -805,7 +805,7 @@ mod test {
             }
         )
     )]
-    fn test_osm_deserialise<E>(osm_str: &str, expected: Osm<E>)
+    fn test_osm_deserialise<E>(osm_str: &str, expected: OsmSingle<E>)
     where
         E: DeserializeOwned + OpenstreetmapNode + std::fmt::Debug + std::cmp::PartialEq,
     {
@@ -816,7 +816,7 @@ mod test {
         */
 
         // WHEN
-        let actual: Osm<E> = from_str(&osm_str).unwrap();
+        let actual: OsmSingle<E> = from_str(&osm_str).unwrap();
 
         // THEN
         assert_eq!(actual, expected);
