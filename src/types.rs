@@ -327,3 +327,12 @@ pub struct WayFull {
     #[serde(rename = "node", default)]
     pub nodes: Vec<Node>,
 }
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct RelationFull {
+    pub relation: Relation,
+    #[serde(rename = "way", default)]
+    pub ways: Vec<Way>,
+    #[serde(rename = "node", default)]
+    pub nodes: Vec<Node>,
+}

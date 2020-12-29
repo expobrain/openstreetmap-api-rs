@@ -651,3 +651,88 @@ async fn test_way_full(
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(relation_id, response_str, expected,
+    case(
+        4507,
+        r#"
+        <osm>
+            <relation id="4507" visible="true" version="1" changeset="3198" timestamp="2010-02-25T19:52:18Z" user="rus" uid="96">
+                <member type="way" ref="80976" role="outer"/>
+            </relation>
+            <way id="49780" visible="true" version="1" changeset="2308" timestamp="2009-12-09T08:51:50Z" user="guggis" uid="1" />
+            <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true" />
+        </osm>
+        "#,
+        types::RelationFull {
+            relation: types::Relation {
+                id: 4507,
+                visible: true,
+                version: 1,
+                changeset: 3198,
+                timestamp: "2010-02-25T19:52:18Z".into(),
+                user: "rus".into(),
+                uid: 96,
+                tags: vec![],
+                members: vec![types::Member {
+                    member_type: "way".into(),
+                    node_id: 80976,
+                    role: "outer".into(),
+                }],
+            },
+            ways: vec![types::Way {
+                id: 49780,
+                visible: true,
+                version: 1,
+                changeset: 2308,
+                timestamp: "2009-12-09T08:51:50Z".into(),
+                user: "guggis".into(),
+                uid: 1,
+                node_refs: vec![],
+                tags: vec![],
+            }],
+            nodes: vec![types::Node {
+                id: 1234,
+                changeset: 42,
+                version: 2,
+                uid: 1,
+                timestamp: "2009-12-09T08:19:00Z".into(),
+                user: "user".into(),
+                visible: true,
+                lat: 12.1234567,
+                lon: -8.7654321,
+                tags: vec![],
+            }]
+        }
+    )
+)]
+#[actix_rt::test]
+async fn test_relation_full(
+    credentials: types::Credentials,
+    relation_id: u64,
+    response_str: &str,
+    expected: types::RelationFull,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the relations().full() function
+    THEN returns the full nodes and ways of the given relation
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/relation/{}/full", relation_id)))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.relations().full(relation_id).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}

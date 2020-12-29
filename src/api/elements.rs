@@ -591,6 +591,22 @@ impl Elements<types::Way> {
     }
 }
 
+impl Elements<types::Relation> {
+    pub async fn full(&self, relation_id: u64) -> Result<types::RelationFull, OpenstreetmapError> {
+        let url = format!("relation/{}/full", relation_id);
+        let full = self
+            .client
+            .request_including_version::<u64, types::RelationFull>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?;
+
+        Ok(full)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
