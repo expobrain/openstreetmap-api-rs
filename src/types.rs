@@ -320,3 +320,10 @@ impl fmt::Display for ElementIdParam {
         )
     }
 }
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct WayFull {
+    pub way: Way,
+    #[serde(rename = "node", default)]
+    pub nodes: Vec<Node>,
+}

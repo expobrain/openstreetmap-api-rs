@@ -575,6 +575,22 @@ impl Elements<types::Node> {
     }
 }
 
+impl Elements<types::Way> {
+    pub async fn full(&self, way_id: u64) -> Result<types::WayFull, OpenstreetmapError> {
+        let url = format!("way/{}/full", way_id);
+        let full = self
+            .client
+            .request_including_version::<u64, types::WayFull>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?;
+
+        Ok(full)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

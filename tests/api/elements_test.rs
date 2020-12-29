@@ -584,3 +584,70 @@ async fn test_ways(
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(way_id, response_str, expected,
+    case(
+        49780,
+        r#"
+        <osm>
+            <way id="49780" visible="true" version="1" changeset="2308" timestamp="2009-12-09T08:51:50Z" user="guggis" uid="1" />
+            <node id="1234" changeset="42" version="2" lat="12.1234567" lon="-8.7654321" timestamp="2009-12-09T08:19:00Z" uid="1" user="user" visible="true" />
+        </osm>
+        "#,
+        types::WayFull {
+            way: types::Way {
+                id: 49780,
+                visible: true,
+                version: 1,
+                changeset: 2308,
+                timestamp: "2009-12-09T08:51:50Z".into(),
+                user: "guggis".into(),
+                uid: 1,
+                node_refs: vec![],
+                tags: vec![],
+            },
+            nodes: vec![types::Node {
+                id: 1234,
+                changeset: 42,
+                version: 2,
+                uid: 1,
+                timestamp: "2009-12-09T08:19:00Z".into(),
+                user: "user".into(),
+                visible: true,
+                lat: 12.1234567,
+                lon: -8.7654321,
+                tags: vec![],
+            }]
+        }
+    )
+)]
+#[actix_rt::test]
+async fn test_way_full(
+    credentials: types::Credentials,
+    way_id: u64,
+    response_str: &str,
+    expected: types::WayFull,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the ways().full() function
+    THEN returns the full nodes of the given way
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/way/{}/full", way_id)))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.ways().full(way_id).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}
