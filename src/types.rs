@@ -340,6 +340,8 @@ pub struct RelationFull {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 pub struct ContributorTerms {
     pub agreed: bool,
+    #[serde(rename = "pd", default)]
+    pub public_domain: bool,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -359,25 +361,37 @@ pub struct Traces {
 }
 
 #[derive(Debug, Default, PartialEq, Deserialize)]
-#[serde(rename = "received")]
 pub struct Block {
     pub count: u64,
     pub active: u64,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
+pub struct CoordsView {
+    pub lat: f64,
+    pub lon: f64,
+    pub zoom: u8,
+}
+
+#[derive(Debug, Default, PartialEq)]
+pub struct Messages {
+    pub received: u64,
+    pub unread: u64,
+    pub sent: u64,
+}
+
+#[derive(Debug, Default, PartialEq)]
 pub struct User {
     pub id: u64,
     pub display_name: String,
     pub account_created: String,
     pub description: Option<String>,
-    #[serde(rename = "contributor-terms")]
     pub contributor_terms: ContributorTerms,
-    #[serde(rename = "img")]
-    pub image: Image,
-    #[serde(default)]
+    pub image: Option<Image>,
     pub changesets: UserChangesets,
-    #[serde(default)]
     pub traces: Traces,
-    // pub blocks: Vec<Block>,
+    pub blocks: Vec<Block>,
+    pub home: Option<CoordsView>,
+    pub languages: Vec<String>,
+    pub messages: Messages,
 }
