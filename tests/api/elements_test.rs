@@ -472,3 +472,61 @@ async fn test_multi_get(
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(element_id, response_str, expected,
+    case(
+        4507,
+        r#"
+        <osm>
+            <relation id="4507" visible="true" version="1" changeset="3198" timestamp="2010-02-25T19:52:18Z" user="rus" uid="96">
+                <member type="way" ref="80976" role="outer"/>
+            </relation>
+        </osm>
+        "#,
+        vec![types::Relation {
+            id: 4507,
+            visible: true,
+            version: 1,
+            changeset: 3198,
+            timestamp: "2010-02-25T19:52:18Z".into(),
+            user: "rus".into(),
+            uid: 96,
+            tags: vec![],
+            members: vec![types::Member {
+                member_type: "way".into(),
+                node_id: 80976,
+                role: "outer".into(),
+            }],
+        }],
+    )
+)]
+#[actix_rt::test]
+async fn test_relations(
+    credentials: types::Credentials,
+    element_id: u64,
+    response_str: &str,
+    expected: Vec<types::Relation>,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the relations() function
+    THEN returns the element's relations
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/node/{}/relations", element_id)))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.nodes().relations(element_id).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}

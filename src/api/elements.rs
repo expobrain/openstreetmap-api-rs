@@ -538,6 +538,24 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
         Ok(elements)
     }
+
+    pub async fn relations(
+        &self,
+        element_id: u64,
+    ) -> Result<Vec<types::Relation>, OpenstreetmapError> {
+        let url = format!("{}{}/relations", E::base_url(), element_id);
+        let elements = self
+            .client
+            .request_including_version::<u64, OsmList<types::Relation>>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?
+            .elements;
+
+        Ok(elements)
+    }
 }
 
 #[cfg(test)]
