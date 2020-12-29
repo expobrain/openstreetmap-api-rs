@@ -336,3 +336,48 @@ pub struct RelationFull {
     #[serde(rename = "node", default)]
     pub nodes: Vec<Node>,
 }
+
+#[derive(Debug, Default, PartialEq, Deserialize)]
+pub struct ContributorTerms {
+    pub agreed: bool,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct Image {
+    #[serde(rename = "href")]
+    pub url: String,
+}
+
+#[derive(Debug, Default, PartialEq, Deserialize)]
+pub struct UserChangesets {
+    pub count: u64,
+}
+
+#[derive(Debug, Default, PartialEq, Deserialize)]
+pub struct Traces {
+    pub count: u64,
+}
+
+#[derive(Debug, Default, PartialEq, Deserialize)]
+#[serde(rename = "received")]
+pub struct Block {
+    pub count: u64,
+    pub active: u64,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct User {
+    pub id: u64,
+    pub display_name: String,
+    pub account_created: String,
+    pub description: Option<String>,
+    #[serde(rename = "contributor-terms")]
+    pub contributor_terms: ContributorTerms,
+    #[serde(rename = "img")]
+    pub image: Image,
+    #[serde(default)]
+    pub changesets: UserChangesets,
+    #[serde(default)]
+    pub traces: Traces,
+    // pub blocks: Vec<Block>,
+}

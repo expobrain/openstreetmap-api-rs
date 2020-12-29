@@ -93,6 +93,11 @@ impl Openstreetmap {
     }
 
     #[inline]
+    pub fn user(&self) -> api::user::User {
+        api::user::User::new(self)
+    }
+
+    #[inline]
     pub async fn changesets(
         &self,
         query: types::ChangesetQueryParams,

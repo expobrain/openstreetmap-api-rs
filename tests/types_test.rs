@@ -218,3 +218,46 @@ fn test_element_id_param_new(id: u64, version: Option<u64>, expected: ElementIdP
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(data, expected,
+    case(
+        r#"
+        <user id="12023" display_name="jbpbis" account_created="2007-08-16T01:35:56Z">
+            <description />
+            <contributor-terms agreed="false"/>
+            <img href="http://www.gravatar.com/avatar/c8c86cd15f60ecca66ce2b10cb6b9a00.jpg"/>
+            <roles />
+            <changesets count="1"/>
+            <traces count="0"/>
+            <blocks>
+                <received count="0" active="0"/>
+            </blocks>
+        </user>
+        "#,
+        User {
+            id: 12023,
+            display_name: "jbpbis".into(),
+            account_created: "2007-08-16T01:35:56Z".into(),
+            description: Some("".into()),
+            contributor_terms: ContributorTerms::default(),
+            image: Image {
+                url: "http://www.gravatar.com/avatar/c8c86cd15f60ecca66ce2b10cb6b9a00.jpg".into()
+            },
+            changesets: UserChangesets { count: 1 },
+            traces: Traces::default(),
+            // blocks: vec![Block::default()],
+        }
+    )
+)]
+fn test_user_deserialise(data: &str, expected: User) {
+    /*
+    GIVEN an user's data
+    WHEN deserialising
+    THEN an User struct is returned
+    */
+    // WHEN
+    let actual: User = from_str(data).unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}
