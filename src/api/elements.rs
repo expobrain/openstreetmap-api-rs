@@ -558,6 +558,23 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
     }
 }
 
+impl Elements<types::Node> {
+    pub async fn ways(&self, node_id: u64) -> Result<Vec<types::Way>, OpenstreetmapError> {
+        let url = format!("node/{}/ways", node_id);
+        let elements = self
+            .client
+            .request_including_version::<u64, OsmList<types::Way>>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?
+            .elements;
+
+        Ok(elements)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

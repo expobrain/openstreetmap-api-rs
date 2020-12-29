@@ -530,3 +530,57 @@ async fn test_relations(
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(node_id, response_str, expected,
+    case(
+        49780,
+        r#"
+        <osm>
+            <way id="49780" visible="true" version="1" changeset="2308" timestamp="2009-12-09T08:51:50Z" user="guggis" uid="1">
+                <nd ref="1150401"/>
+            </way>
+        </osm>
+        "#,
+        vec![types::Way {
+            id: 49780,
+            visible: true,
+            version: 1,
+            changeset: 2308,
+            timestamp: "2009-12-09T08:51:50Z".into(),
+            user: "guggis".into(),
+            uid: 1,
+            node_refs: vec![types::NodeRef { node_id: 1150401 }],
+            tags: vec![],
+        }],
+    )
+)]
+#[actix_rt::test]
+async fn test_ways(
+    credentials: types::Credentials,
+    node_id: u64,
+    response_str: &str,
+    expected: Vec<types::Way>,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the ways() function
+    THEN returns the ways for a given node
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/node/{}/ways", node_id)))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.nodes().ways(node_id).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}
