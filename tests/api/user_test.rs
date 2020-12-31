@@ -2,7 +2,7 @@ use openstreetmap_api::types;
 use openstreetmap_api::Openstreetmap;
 use pretty_assertions::assert_eq;
 use rstest::*;
-use wiremock::matchers::{method, path, query_param, QueryParamExactMatcher};
+use wiremock::matchers::{body_string, method, path, query_param, QueryParamExactMatcher};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::utils::credentials;
@@ -300,4 +300,82 @@ async fn test_preferences_update(
         .preferences_update(&preferences)
         .await
         .unwrap();
+}
+
+#[rstest(key, response_str, expected, case("somekey", "somevalue", "somevalue"))]
+#[actix_rt::test]
+async fn test_preference(
+    credentials: types::Credentials,
+    key: &str,
+    response_str: &str,
+    expected: &str,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the preference() function
+    THEN returns the value for the given preference
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/user/preferences/{}", key)))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "text/plain"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.user().preference(&key).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}
+
+#[rstest(key, value, case("somekey", "somevalue"))]
+#[actix_rt::test]
+async fn test_preference_update(credentials: types::Credentials, key: &str, value: &str) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the preference_update() function
+    THEN updates the user preference
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("PUT"))
+        .and(path(format!("/api/0.6/user/preferences/{}", key)))
+        .and(body_string(value))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    client.user().preference_update(&key, &value).await.unwrap();
+}
+
+#[rstest(key, case("somekey"))]
+#[actix_rt::test]
+async fn test_preference_delete(credentials: types::Credentials, key: &str) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the preference_delete() function
+    THEN deletes the user preference
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("DELETE"))
+        .and(path(format!("/api/0.6/user/preferences/{}", key)))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    client.user().preference_delete(&key).await.unwrap();
 }

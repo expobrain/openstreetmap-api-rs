@@ -152,6 +152,9 @@ impl Openstreetmap {
                 .body(to_string(&payload)?.into_bytes())
                 .header(CONTENT_TYPE, "text/xml"),
             types::RequestBody::Form(payload) => builder.form(&payload),
+            types::RequestBody::RawForm(payload) => builder
+                .body(payload)
+                .header(CONTENT_TYPE, "application/x-www-form-urlencoded"),
             types::RequestBody::None => builder,
         };
 

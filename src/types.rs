@@ -10,6 +10,7 @@ pub enum Credentials {
 pub enum RequestBody<S: Serialize> {
     Xml(S),
     Form(S),
+    RawForm(Vec<u8>),
     None,
 }
 

@@ -245,6 +245,51 @@ impl User {
 
         Ok(())
     }
+
+    pub async fn preference(&self, key: &str) -> Result<String, OpenstreetmapError> {
+        let url = format!("user/preferences/{}", key);
+
+        let user = self
+            .client
+            .request_including_version::<(), String>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?;
+
+        Ok(user)
+    }
+
+    pub async fn preference_update(
+        &self,
+        key: &str,
+        value: &str,
+    ) -> Result<(), OpenstreetmapError> {
+        let url = format!("user/preferences/{}", key);
+        let payload = types::RequestBody::RawForm(value.into());
+
+        self.client
+            .request_including_version::<String, Vec<u8>>(reqwest::Method::PUT, &url, payload)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn preference_delete(&self, key: &str) -> Result<(), OpenstreetmapError> {
+        let url = format!("user/preferences/{}", key);
+
+        // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
+        self.client
+            .request_including_version::<(), Vec<u8>>(
+                reqwest::Method::DELETE,
+                &url,
+                types::RequestBody::None,
+            )
+            .await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
