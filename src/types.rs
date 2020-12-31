@@ -1,4 +1,5 @@
 use serde::ser::Serialize;
+use std::collections::HashMap;
 use std::fmt;
 
 #[derive(Debug, Clone)]
@@ -395,3 +396,5 @@ pub struct User {
     pub languages: Vec<String>,
     pub messages: Messages,
 }
+
+pub type UserPreferences = HashMap<String, String>;

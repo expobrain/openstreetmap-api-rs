@@ -14,6 +14,33 @@ struct OsmList {
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
+struct Preference {
+    pub k: String,
+    pub v: String,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+struct Preferences {
+    #[serde(default, rename = "preference")]
+    pub preferences: Vec<Preference>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+struct OsmPreferences {
+    pub preferences: Preferences,
+}
+
+impl Into<types::UserPreferences> for OsmPreferences {
+    fn into(self) -> types::UserPreferences {
+        self.preferences
+            .preferences
+            .into_iter()
+            .map(|p| (p.k, p.v))
+            .collect()
+    }
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
 struct BlockRaw {
     pub received: types::Block,
 }
@@ -165,6 +192,20 @@ impl User {
             )
             .await?
             .user
+            .into();
+
+        Ok(user)
+    }
+
+    pub async fn preferences(&self) -> Result<types::UserPreferences, OpenstreetmapError> {
+        let user = self
+            .client
+            .request_including_version::<(), OsmPreferences>(
+                reqwest::Method::GET,
+                "user/preferences",
+                types::RequestBody::None,
+            )
+            .await?
             .into();
 
         Ok(user)

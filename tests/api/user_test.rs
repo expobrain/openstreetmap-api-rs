@@ -220,3 +220,47 @@ async fn test_details(credentials: types::Credentials, response_str: &str, expec
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(response_str, expected,
+    case(
+        r#"
+        <osm version="0.6" generator="OpenStreetMap server">
+            <preferences>
+                <preference k="somekey" v="somevalue" />
+            </preferences>
+        </osm>
+        "#,
+        [("somekey".to_string(), "somevalue".to_string())]
+            .iter()
+            .cloned()
+            .collect::<types::UserPreferences>()
+    )
+)]
+#[actix_rt::test]
+async fn test_preferences(
+    credentials: types::Credentials,
+    response_str: &str,
+    expected: types::UserPreferences,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the preferences() function
+    THEN returns the current user's preferences
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/0.6/user/preferences"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.user().preferences().await.unwrap();
+
+    // THEN
+    assert_eq!(actual, expected);
+}
