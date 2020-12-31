@@ -13,19 +13,20 @@ struct OsmList {
     pub users: Vec<UserRaw>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 struct Preference {
     pub k: String,
     pub v: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
 struct Preferences {
     #[serde(default, rename = "preference")]
-    pub preferences: Vec<Preference>,
+    pub list: Vec<Preference>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename = "osm")]
 struct OsmPreferences {
     pub preferences: Preferences,
 }
@@ -33,10 +34,26 @@ struct OsmPreferences {
 impl Into<types::UserPreferences> for OsmPreferences {
     fn into(self) -> types::UserPreferences {
         self.preferences
-            .preferences
+            .list
             .into_iter()
             .map(|p| (p.k, p.v))
             .collect()
+    }
+}
+
+impl From<&types::UserPreferences> for OsmPreferences {
+    fn from(preferences: &types::UserPreferences) -> Self {
+        Self {
+            preferences: Preferences {
+                list: preferences
+                    .iter()
+                    .map(|(k, v)| Preference {
+                        k: k.clone(),
+                        v: v.clone(),
+                    })
+                    .collect(),
+            },
+        }
     }
 }
 
@@ -210,6 +227,24 @@ impl User {
 
         Ok(user)
     }
+
+    pub async fn preferences_update(
+        &self,
+        preferences: &types::UserPreferences,
+    ) -> Result<(), OpenstreetmapError> {
+        let payload = types::RequestBody::Xml(OsmPreferences::from(preferences));
+
+        // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
+        self.client
+            .request_including_version::<OsmPreferences, Vec<u8>>(
+                reqwest::Method::PUT,
+                "user/preferences",
+                payload,
+            )
+            .await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -217,6 +252,7 @@ mod test {
     use super::*;
     use pretty_assertions::assert_eq;
     use quick_xml::de::from_str;
+    use quick_xml::se::to_string;
     use rstest::*;
 
     #[rstest(data, expected,
@@ -315,6 +351,66 @@ mod test {
         // WHEN
         let actual_raw: UserRaw = from_str(data).unwrap();
         let actual: types::User = actual_raw.into();
+
+        // THEN
+        assert_eq!(actual, expected);
+    }
+
+    #[rstest(data, expected,
+        case(
+            r#"
+            <osm version="0.6" generator="OpenStreetMap server">
+                <preferences>
+                    <preference k="somekey" v="somevalue" />
+                </preferences>
+            </osm>
+            "#,
+            [("somekey".to_string(), "somevalue".to_string())]
+                .iter()
+                .cloned()
+                .collect::<types::UserPreferences>()
+        )
+    )]
+    fn test_osm_preferences_deserialise(data: &str, expected: types::UserPreferences) {
+        /*
+        GIVEN an OSM user's preferences data
+        WHEN deserialising
+        THEN the UserPreferences type is returned
+        */
+        // WHEN
+        let actual_raw: OsmPreferences = from_str(data).unwrap();
+        let actual: types::UserPreferences = actual_raw.into();
+
+        // THEN
+        assert_eq!(actual, expected);
+    }
+
+    #[rstest(preferences, expected,
+        case(
+            [("somekey".to_string(), "somevalue".to_string())]
+                .iter()
+                .cloned()
+                .collect::<types::UserPreferences>(),
+            vec![
+                r#"<osm>"#,
+                r#"<preferences>"#,
+                r#"<preference k="somekey" v="somevalue"/>"#,
+                r#"</preferences>"#,
+                r#"</osm>"#,
+            ].join("")
+        )
+    )]
+    fn test_osm_preferences_serialise(preferences: types::UserPreferences, expected: String) {
+        /*
+        GIVEN an OSM user's preferences data
+        WHEN deserialising
+        THEN the UserPreferences type is returned
+        */
+        // GIVEN
+        let payload = OsmPreferences::from(&preferences);
+
+        // WHEN
+        let actual = to_string(&payload).unwrap();
 
         // THEN
         assert_eq!(actual, expected);

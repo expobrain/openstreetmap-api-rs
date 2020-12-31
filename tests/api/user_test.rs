@@ -264,3 +264,40 @@ async fn test_preferences(
     // THEN
     assert_eq!(actual, expected);
 }
+
+#[rstest(preferences,
+    case(
+        [("somekey".to_string(), "somevalue".to_string())]
+            .iter()
+            .cloned()
+            .collect::<types::UserPreferences>()
+    )
+)]
+#[actix_rt::test]
+async fn test_preferences_update(
+    credentials: types::Credentials,
+    preferences: types::UserPreferences,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the preferences_update() function
+    THEN updates the user preferences
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("PUT"))
+        .and(path("/api/0.6/user/preferences"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    client
+        .user()
+        .preferences_update(&preferences)
+        .await
+        .unwrap();
+}
