@@ -179,7 +179,7 @@ impl ChangesetCreate {
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
-pub struct Comment {
+pub struct DiscussionComment {
     pub date: String,
     pub uid: u64,
     pub user: String,
@@ -190,7 +190,7 @@ pub struct Comment {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Discussion {
     #[serde(rename = "comment", default)]
-    pub comments: Vec<Comment>,
+    pub comments: Vec<DiscussionComment>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -399,3 +399,28 @@ pub struct User {
 }
 
 pub type UserPreferences = HashMap<String, String>;
+
+#[derive(Debug, Default, PartialEq, Deserialize)]
+pub struct Comment {
+    #[serde(rename = "uid")]
+    pub id: u64,
+    pub date: String,
+    pub user: String,
+    pub user_url: String,
+    pub action: String,
+    pub text: String,
+    pub html: String,
+}
+
+#[derive(Debug, Default, PartialEq)]
+pub struct Note {
+    pub id: u64,
+    pub lon: f64,
+    pub lat: f64,
+    pub url: String,
+    pub comment_url: String,
+    pub close_url: String,
+    pub created_at: String,
+    pub status: String,
+    pub comments: Vec<Comment>,
+}

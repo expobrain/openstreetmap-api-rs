@@ -3,6 +3,7 @@ mod changeset_test;
 mod changesets_test;
 mod elements_test;
 mod map_test;
+mod notes_test;
 mod permissions_test;
 mod user_test;
 mod utils;

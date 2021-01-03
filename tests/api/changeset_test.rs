@@ -137,7 +137,7 @@ async fn test_get(credentials: types::Credentials, response_str: &str, expected:
             max_lon: Some(7.0197485),
             max_lat: Some(49.2793101),
             discussion: Some(types::Discussion {
-                comments: vec![types::Comment {
+                comments: vec![types::DiscussionComment {
                     date: "2015-01-01T18:56:48Z".into(),
                     uid: 1841,
                     user: "metaodi".into(),

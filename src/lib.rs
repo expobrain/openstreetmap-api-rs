@@ -98,6 +98,11 @@ impl Openstreetmap {
     }
 
     #[inline]
+    pub fn notes(&self) -> api::notes::Notes {
+        api::notes::Notes::new(self)
+    }
+
+    #[inline]
     pub async fn changesets(
         &self,
         query: types::ChangesetQueryParams,
