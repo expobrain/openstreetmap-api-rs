@@ -1,4 +1,5 @@
 mod capabilities_test;
+mod changeset_test;
 mod changesets_test;
 mod elements_test;
 mod map_test;

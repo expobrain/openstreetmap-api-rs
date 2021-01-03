@@ -1,7 +1,6 @@
 use openstreetmap_api::types;
 use openstreetmap_api::Openstreetmap;
 use pretty_assertions::assert_eq;
-use quick_xml::se::to_string;
 use rstest::*;
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
