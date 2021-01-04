@@ -129,3 +129,43 @@ async fn test_get(credentials: types::Credentials, note_response: &str, note: ty
     // THEN
     assert_eq!(actual, note);
 }
+
+#[fixture]
+fn note_content() -> types::NoteContent {
+    types::NoteContent {
+        lat: 51.0000000,
+        lon: 0.1000000,
+        text: "ThisIsANote".into(),
+    }
+}
+
+#[rstest]
+#[actix_rt::test]
+async fn test_create(
+    credentials: types::Credentials,
+    note_content: types::NoteContent,
+    note_response: &str,
+    note: types::Note,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the create() function with a NoteContent instance
+    THEN returns a note
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path("/api/0.6/notes"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.notes().create(note_content).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, note);
+}

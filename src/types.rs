@@ -424,3 +424,10 @@ pub struct Note {
     pub status: String,
     pub comments: Vec<Comment>,
 }
+
+#[derive(Debug, Default, PartialEq, Serialize)]
+pub struct NoteContent {
+    pub lat: f64,
+    pub lon: f64,
+    pub text: String,
+}

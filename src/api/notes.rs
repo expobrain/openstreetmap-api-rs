@@ -102,6 +102,24 @@ impl Notes {
 
         Ok(note)
     }
+
+    pub async fn create(
+        &self,
+        note_content: types::NoteContent,
+    ) -> Result<types::Note, OpenstreetmapError> {
+        let note = self
+            .client
+            .request_including_version::<types::NoteContent, OsmSingle>(
+                reqwest::Method::POST,
+                "notes",
+                types::RequestBody::Form(note_content),
+            )
+            .await?
+            .note
+            .into();
+
+        Ok(note)
+    }
 }
 
 #[cfg(test)]
