@@ -139,7 +139,7 @@ impl Openstreetmap {
         let mut url = Url::parse(&self.host)?.join("api/")?;
 
         if version.is_some() {
-            let version_path = format!("{}/", version.unwrap().to_string());
+            let version_path = format!("{}/", version.unwrap());
 
             url = url.join(&version_path)?;
         }
