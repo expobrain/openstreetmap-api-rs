@@ -458,7 +458,7 @@ async fn test_multi_get(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/nodes/")))
+        .and(path("/api/0.6/nodes/".to_string()))
         .and(request_qs)
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)

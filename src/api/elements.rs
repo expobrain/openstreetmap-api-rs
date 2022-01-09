@@ -842,7 +842,7 @@ mod test {
         */
 
         // WHEN
-        let actual: OsmSingle<E> = from_str(&osm_str).unwrap();
+        let actual: OsmSingle<E> = from_str(osm_str).unwrap();
 
         // THEN
         assert_eq!(actual, expected);

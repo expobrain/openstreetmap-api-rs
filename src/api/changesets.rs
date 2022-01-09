@@ -10,16 +10,11 @@ where
     T: Display,
     S: Serializer,
 {
-    let serialisable_value = match vector {
-        Some(value) => Some(
-            value
+    let serialisable_value = vector.as_ref().map(|value| value
                 .iter()
                 .map(|v| format!("{}", v))
                 .collect::<Vec<String>>()
-                .join(","),
-        ),
-        _ => None,
-    };
+                .join(","));
 
     match serialisable_value {
         None => serialiser.serialize_none(),
