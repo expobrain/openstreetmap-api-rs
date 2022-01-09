@@ -22,18 +22,18 @@ pub struct NoteRaw {
     pub comments: CommentsRaw,
 }
 
-impl Into<types::Note> for NoteRaw {
-    fn into(self) -> types::Note {
+impl From<NoteRaw> for types::Note {
+    fn from(value: NoteRaw) -> types::Note {
         types::Note {
-            id: self.id,
-            lon: self.lon,
-            lat: self.lat,
-            url: self.url,
-            comment_url: self.comment_url,
-            close_url: self.close_url,
-            created_at: self.created_at,
-            status: self.status,
-            comments: self.comments.comments,
+            id: value.id,
+            lon: value.lon,
+            lat: value.lat,
+            url: value.url,
+            comment_url: value.comment_url,
+            close_url: value.close_url,
+            created_at: value.created_at,
+            status: value.status,
+            comments: value.comments.comments,
         }
     }
 }

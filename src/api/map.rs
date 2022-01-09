@@ -10,13 +10,13 @@ struct Bounds {
     pub maxlon: f64,
 }
 
-impl Into<types::BoundingBox> for Bounds {
-    fn into(self) -> types::BoundingBox {
+impl From<Bounds> for types::BoundingBox {
+    fn from(value: Bounds) -> types::BoundingBox {
         types::BoundingBox {
-            left: self.minlon,
-            bottom: self.minlat,
-            right: self.maxlon,
-            top: self.maxlat,
+            left: value.minlon,
+            bottom: value.minlat,
+            right: value.maxlon,
+            top: value.maxlat,
         }
     }
 }
@@ -32,13 +32,13 @@ struct Osm {
     pub relations: Vec<types::Relation>,
 }
 
-impl Into<types::Map> for Osm {
-    fn into(self) -> types::Map {
+impl From<Osm> for types::Map {
+    fn from(value: Osm) -> types::Map {
         types::Map {
-            bounds: self.bounds.into(),
-            nodes: self.nodes,
-            ways: self.ways,
-            relations: self.relations,
+            bounds: value.bounds.into(),
+            nodes: value.nodes,
+            ways: value.ways,
+            relations: value.relations,
         }
     }
 }
