@@ -237,10 +237,7 @@ where
                     }
                 }
 
-                let element = match value {
-                    Some(v) => v,
-                    None => serde::private::de::missing_field("element")?,
-                };
+                let element = value.ok_or_else(|| serde::de::Error::missing_field("element"))?;
 
                 Ok(OsmSingle { element })
             }
@@ -397,10 +394,7 @@ where
                     }
                 }
 
-                let elements = match value {
-                    Some(v) => v,
-                    None => serde::private::de::missing_field("element")?,
-                };
+                let elements = value.ok_or_else(|| serde::de::Error::missing_field("element"))?;
 
                 Ok(OsmList { elements })
             }
