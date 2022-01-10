@@ -1,5 +1,7 @@
 # openstreetmap-api-rs
 
+![Build status](https://github.com/expobrain/openstreetmap-api-rs/actions/workflows/main.yml/badge.svg?branch=master)
+
 Rust client for the [OpenstreetMap API](https://wiki.openstreetmap.org/wiki/API_v0.6).
 
 > Note: Client is not complete yet, some API can change in the future and not all the OSM API endpoints are yet implemented.
