@@ -327,7 +327,7 @@ async fn test_preference(
     let client = Openstreetmap::new(mock_server.uri(), credentials);
 
     // WHEN
-    let actual = client.user().preference(&key).await.unwrap();
+    let actual = client.user().preference(key).await.unwrap();
 
     // THEN
     assert_eq!(actual, expected);
@@ -354,7 +354,7 @@ async fn test_preference_update(credentials: types::Credentials, key: &str, valu
     let client = Openstreetmap::new(mock_server.uri(), credentials);
 
     // WHEN
-    client.user().preference_update(&key, &value).await.unwrap();
+    client.user().preference_update(key, value).await.unwrap();
 }
 
 #[rstest(key, case("somekey"))]
@@ -377,5 +377,5 @@ async fn test_preference_delete(credentials: types::Credentials, key: &str) {
     let client = Openstreetmap::new(mock_server.uri(), credentials);
 
     // WHEN
-    client.user().preference_delete(&key).await.unwrap();
+    client.user().preference_delete(key).await.unwrap();
 }

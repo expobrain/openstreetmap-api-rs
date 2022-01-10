@@ -31,9 +31,10 @@ struct OsmPreferences {
     pub preferences: Preferences,
 }
 
-impl Into<types::UserPreferences> for OsmPreferences {
-    fn into(self) -> types::UserPreferences {
-        self.preferences
+impl From<OsmPreferences> for types::UserPreferences {
+    fn from(value: OsmPreferences) -> types::UserPreferences {
+        value
+            .preferences
             .list
             .into_iter()
             .map(|p| (p.k, p.v))
@@ -91,12 +92,12 @@ struct MessagesRaw {
     pub received: MessageReceived,
 }
 
-impl Into<types::Messages> for MessagesRaw {
-    fn into(self) -> types::Messages {
+impl From<MessagesRaw> for types::Messages {
+    fn from(value: MessagesRaw) -> types::Messages {
         types::Messages {
-            received: self.received.count,
-            unread: self.received.unread,
-            sent: self.sent.count,
+            received: value.received.count,
+            unread: value.received.unread,
+            sent: value.sent.count,
         }
     }
 }
@@ -124,24 +125,24 @@ struct UserRaw {
     pub messages: MessagesRaw,
 }
 
-impl Into<types::User> for UserRaw {
-    fn into(self) -> types::User {
+impl From<UserRaw> for types::User {
+    fn from(value: UserRaw) -> types::User {
         types::User {
-            id: self.id,
-            display_name: self.display_name,
-            account_created: self.account_created,
-            description: self.description,
-            contributor_terms: self.contributor_terms,
-            image: self.image,
-            changesets: self.changesets,
-            traces: self.traces,
-            blocks: self.blocks.into_iter().map(|b| b.received).collect(),
-            home: self.home,
-            languages: self
+            id: value.id,
+            display_name: value.display_name,
+            account_created: value.account_created,
+            description: value.description,
+            contributor_terms: value.contributor_terms,
+            image: value.image,
+            changesets: value.changesets,
+            traces: value.traces,
+            blocks: value.blocks.into_iter().map(|b| b.received).collect(),
+            home: value.home,
+            languages: value
                 .languages
                 .map(|l| l.lang.into_iter().map(|l| l.lang).collect())
                 .unwrap_or_else(Vec::new),
-            messages: self.messages.into(),
+            messages: value.messages.into(),
         }
     }
 }

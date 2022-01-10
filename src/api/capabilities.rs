@@ -8,27 +8,27 @@ struct Osm {
     pub policy: types::Policy,
 }
 
-impl Into<types::CapabilitiesAndPolicy> for Osm {
-    fn into(self) -> types::CapabilitiesAndPolicy {
+impl From<Osm> for types::CapabilitiesAndPolicy {
+    fn from(value: Osm) -> types::CapabilitiesAndPolicy {
         types::CapabilitiesAndPolicy {
             capabilities: types::Capabilities {
                 versions: types::VersionRange {
-                    minimum: self.api.version.minimum,
-                    maximum: self.api.version.maximum,
+                    minimum: value.api.version.minimum,
+                    maximum: value.api.version.maximum,
                 },
-                maximum_area: self.api.area.maximum,
-                maximum_note_area: self.api.note_area.maximum,
-                tracepoints_per_page: self.api.tracepoints.per_page,
-                maximum_waynodes: self.api.waynodes.maximum,
-                maximum_changeset_elements: self.api.changesets.maximum_elements,
-                timeout: self.api.timeout.seconds,
+                maximum_area: value.api.area.maximum,
+                maximum_note_area: value.api.note_area.maximum,
+                tracepoints_per_page: value.api.tracepoints.per_page,
+                maximum_waynodes: value.api.waynodes.maximum,
+                maximum_changeset_elements: value.api.changesets.maximum_elements,
+                timeout: value.api.timeout.seconds,
                 status: types::Status {
-                    database: self.api.status.database,
-                    api: self.api.status.api,
-                    gpx: self.api.status.gpx,
+                    database: value.api.status.database,
+                    api: value.api.status.api,
+                    gpx: value.api.status.gpx,
                 },
             },
-            policy: self.policy,
+            policy: value.policy,
         }
     }
 }

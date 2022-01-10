@@ -11,5 +11,7 @@ Cargo.lock
 
 
 # Added by cargo
-
 **/target
+
+# OS X
+.DS_Store
