@@ -1,4 +1,5 @@
-use openstreetmap_api::{Credentials, Openstreetmap};
+use openstreetmap_api::types::Credentials;
+use openstreetmap_api::Openstreetmap;
 use std::env;
 
 #[tokio::main]
