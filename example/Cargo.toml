@@ -2,10 +2,9 @@
 name = "example"
 version = "0.1.0"
 authors = ["Daniele Esposti"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 openstreetmap-api = { path = ".." }
-tokio = { version = "0.2", features  =["full"] }
+tokio = { version = "0.2", features = ["full"] }
