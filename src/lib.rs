@@ -26,6 +26,29 @@ pub struct Openstreetmap {
     client: reqwest::Client,
 }
 
+#[derive(Debug, Clone)]
+struct RequestOptions {
+    pub use_version: bool,
+    pub use_auth: bool,
+}
+
+impl RequestOptions {
+    pub fn new() -> Self {
+        Self {
+            use_version: false,
+            use_auth: false,
+        }
+    }
+    pub fn with_version(mut self) -> Self {
+        self.use_version = true;
+        self
+    }
+    pub fn with_auth(mut self) -> Self {
+        self.use_auth = true;
+        self
+    }
+}
+
 impl Openstreetmap {
     pub fn new<T>(host: T, credentials: types::Credentials) -> Self
     where
@@ -110,27 +133,12 @@ impl Openstreetmap {
         Ok(api::changesets::Changesets::new(self).get(query).await?)
     }
 
-    #[inline]
-    async fn request_including_version<S, D>(
-        &self,
-        method: reqwest::Method,
-        endpoint: &str,
-        body: types::RequestBody<S>,
-    ) -> Result<D, OpenstreetmapError>
-    where
-        S: Serialize,
-        D: DeserializeOwned,
-    {
-        self.request::<S, D>(method, Some(&self.api_version), endpoint, body)
-            .await
-    }
-
     async fn request<S, D>(
         &self,
         method: reqwest::Method,
-        version: Option<&str>,
         endpoint: &str,
         body: types::RequestBody<S>,
+        options: RequestOptions,
     ) -> Result<D, OpenstreetmapError>
     where
         S: Serialize,
@@ -138,8 +146,8 @@ impl Openstreetmap {
     {
         let mut url = Url::parse(&self.host)?.join("api/")?;
 
-        if version.is_some() {
-            let version_path = format!("{}/", version.unwrap());
+        if options.use_version {
+            let version_path = format!("{}/", self.api_version);
 
             url = url.join(&version_path)?;
         }
@@ -147,10 +155,16 @@ impl Openstreetmap {
         url = url.join(endpoint)?;
         debug!("url -> {:?}", url);
 
-        let req = self.client.request(method, url);
-        let mut builder = match self.credentials {
-            types::Credentials::Basic(ref user, ref pass) => req.basic_auth(user, Some(pass)),
-        };
+        let mut builder = self.client.request(method, url);
+
+        if options.use_auth {
+            builder = match self.credentials {
+                types::Credentials::Basic(ref user, ref pass) => {
+                    builder.basic_auth(user, Some(pass))
+                }
+                types::Credentials::None => return Err(OpenstreetmapError::CredentialsNeeded),
+            };
+        }
 
         builder = match body {
             types::RequestBody::Xml(payload) => builder

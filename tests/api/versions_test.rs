@@ -4,7 +4,7 @@ use rstest::*;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
-use super::utils::credentials;
+use super::utils::no_credentials;
 
 #[rstest(response_str, expected,
     case(
@@ -19,7 +19,7 @@ use super::utils::credentials;
     )
 )]
 #[actix_rt::test]
-async fn test_get(credentials: types::Credentials, response_str: &str, expected: Vec<String>) {
+async fn test_get(no_credentials: types::Credentials, response_str: &str, expected: Vec<String>) {
     /*
     GIVEN an OSM client
     WHEN calling the versions() function
@@ -35,7 +35,7 @@ async fn test_get(credentials: types::Credentials, response_str: &str, expected:
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.versions().await.unwrap();
@@ -58,7 +58,7 @@ async fn test_get(credentials: types::Credentials, response_str: &str, expected:
 )]
 #[actix_rt::test]
 async fn test_get_returns_unknown_version(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     response_str: &str,
     expected: Vec<String>,
 ) {
@@ -78,7 +78,7 @@ async fn test_get_returns_unknown_version(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.versions().await.unwrap();

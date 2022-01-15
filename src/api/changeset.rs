@@ -1,6 +1,7 @@
 use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
+use crate::RequestOptions;
 
 #[derive(Debug, Serialize)]
 #[serde(rename = "changeset")]
@@ -73,9 +74,9 @@ impl Changeset {
             .client
             .request::<OsmCreate, u64>(
                 reqwest::Method::PUT,
-                Some(&self.client.api_version),
                 "changeset/create",
                 body,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?;
 
@@ -93,9 +94,9 @@ impl Changeset {
             .client
             .request::<OsmUpdate, Osm>(
                 reqwest::Method::PUT,
-                Some(&self.client.api_version),
                 &url,
                 body,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?
             .changeset;
@@ -129,10 +130,11 @@ impl Changeset {
 
         let changeset = self
             .client
-            .request_including_version::<(), Osm>(
+            .request::<(), Osm>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .changeset;
@@ -145,10 +147,11 @@ impl Changeset {
 
         // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
         self.client
-            .request_including_version::<(), Vec<u8>>(
+            .request::<(), Vec<u8>>(
                 reqwest::Method::PUT,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?;
 
@@ -163,10 +166,11 @@ impl Changeset {
 
         let changes = self
             .client
-            .request_including_version::<(), types::ChangesetChanges>(
+            .request::<(), types::ChangesetChanges>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?;
 
@@ -182,10 +186,11 @@ impl Changeset {
 
         let diffs = self
             .client
-            .request_including_version::<types::ChangesetChanges, types::DiffResult>(
+            .request::<types::ChangesetChanges, types::DiffResult>(
                 reqwest::Method::POST,
                 &url,
                 types::RequestBody::Xml(changeset_change),
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?;
 
@@ -202,7 +207,12 @@ impl Changeset {
 
         // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
         self.client
-            .request_including_version::<Comment, Vec<u8>>(reqwest::Method::POST, &url, body)
+            .request::<Comment, Vec<u8>>(
+                reqwest::Method::POST,
+                &url,
+                body,
+                RequestOptions::new().with_version().with_auth(),
+            )
             .await?;
 
         Ok(())
@@ -216,10 +226,11 @@ impl Changeset {
 
         let changeset = self
             .client
-            .request_including_version::<(), Osm>(
+            .request::<(), Osm>(
                 reqwest::Method::POST,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?
             .changeset;
@@ -235,10 +246,11 @@ impl Changeset {
 
         let changeset = self
             .client
-            .request_including_version::<(), Osm>(
+            .request::<(), Osm>(
                 reqwest::Method::POST,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?
             .changeset;

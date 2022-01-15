@@ -1,6 +1,7 @@
 use crate::errors::OpenstreetmapError;
 use crate::types;
 use crate::Openstreetmap;
+use crate::RequestOptions;
 
 #[derive(Debug, Default, PartialEq, Deserialize)]
 pub struct CommentsRaw {
@@ -72,10 +73,11 @@ impl Notes {
 
         let notes = self
             .client
-            .request_including_version::<(), OsmList>(
+            .request::<(), OsmList>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .notes
@@ -91,10 +93,11 @@ impl Notes {
 
         let note = self
             .client
-            .request_including_version::<(), OsmSingle>(
+            .request::<(), OsmSingle>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .note
@@ -109,10 +112,11 @@ impl Notes {
     ) -> Result<types::Note, OpenstreetmapError> {
         let note = self
             .client
-            .request_including_version::<types::NoteContent, OsmSingle>(
+            .request::<types::NoteContent, OsmSingle>(
                 reqwest::Method::POST,
                 "notes",
                 types::RequestBody::Form(note_content),
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?
             .note

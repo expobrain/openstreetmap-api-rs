@@ -6,6 +6,7 @@ use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::utils::credentials;
+use super::utils::no_credentials;
 
 #[rstest(body, response_str, expected,
     case(
@@ -86,7 +87,11 @@ async fn test_create(
     )
 )]
 #[actix_rt::test]
-async fn test_get(credentials: types::Credentials, response_str: &str, expected: types::Changeset) {
+async fn test_get(
+    no_credentials: types::Credentials,
+    response_str: &str,
+    expected: types::Changeset,
+) {
     /*
     GIVEN an OSM client
     WHEN calling the get() function with a changeset ID
@@ -102,7 +107,7 @@ async fn test_get(credentials: types::Credentials, response_str: &str, expected:
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.changeset().get(10).await.unwrap();
@@ -153,7 +158,7 @@ async fn test_get(credentials: types::Credentials, response_str: &str, expected:
 )]
 #[actix_rt::test]
 async fn test_get_with_discussion(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     response_str: &str,
     expected: types::Changeset,
 ) {
@@ -174,7 +179,7 @@ async fn test_get_with_discussion(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.changeset().get_with_discussion(10).await.unwrap();
@@ -315,7 +320,7 @@ async fn test_close(credentials: types::Credentials) {
 )]
 #[actix_rt::test]
 async fn test_download(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     response_str: &str,
     expected: types::ChangesetChanges,
 ) {
@@ -335,7 +340,7 @@ async fn test_download(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.changeset().download(10).await.unwrap();

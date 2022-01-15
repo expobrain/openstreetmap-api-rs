@@ -29,6 +29,9 @@ pub enum OpenstreetmapError {
 
     /// Page not found
     NotFound,
+
+    /// Missing credentials for operation that requires authentication
+    CredentialsNeeded,
 }
 
 impl error::Error for OpenstreetmapError {}

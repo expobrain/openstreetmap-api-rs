@@ -5,7 +5,7 @@ use rstest::*;
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
-use super::utils::credentials;
+use super::utils::no_credentials;
 
 #[rstest(response_str, expected,
     case(
@@ -117,7 +117,7 @@ use super::utils::credentials;
     )
 )]
 #[actix_rt::test]
-async fn test_get(credentials: types::Credentials, response_str: &str, expected: types::Map) {
+async fn test_get(no_credentials: types::Credentials, response_str: &str, expected: types::Map) {
     /*
     GIVEN an OSM client
     WHEN calling the map() function
@@ -134,7 +134,7 @@ async fn test_get(credentials: types::Credentials, response_str: &str, expected:
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
     let bbox = types::BoundingBox {
         left: 1.0,
         bottom: 2.0,

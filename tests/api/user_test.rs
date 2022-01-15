@@ -6,6 +6,7 @@ use wiremock::matchers::{body_string, method, path, query_param, QueryParamExact
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::utils::credentials;
+use super::utils::no_credentials;
 
 #[rstest(user_id, response_str, expected,
     case(
@@ -41,7 +42,7 @@ use super::utils::credentials;
 )]
 #[actix_rt::test]
 async fn test_get(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     user_id: u64,
     response_str: &str,
     expected: types::User,
@@ -60,7 +61,7 @@ async fn test_get(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.user().get(user_id).await.unwrap();
@@ -104,7 +105,7 @@ async fn test_get(
 )]
 #[actix_rt::test]
 async fn test_users(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     user_ids: Vec<u64>,
     request_qs: QueryParamExactMatcher,
     response_str: &str,
@@ -125,7 +126,7 @@ async fn test_users(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.user().users(&user_ids).await.unwrap();
