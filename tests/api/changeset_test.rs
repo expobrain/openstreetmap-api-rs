@@ -299,12 +299,46 @@ async fn test_close(credentials: types::Credentials) {
                     id: 1234,
                     changeset: 42,
                     version: 2,
-                    uid: 1,
+                    uid: Some(1),
                     timestamp: "2009-12-09T08:19:00Z".into(),
-                    user: "user".into(),
+                    user: Some("user".into()),
                     visible: true,
-                    lat: 12.1234567,
-                    lon: -8.7654321,
+                    lat: Some(12.1234567),
+                    lon: Some(-8.7654321),
+                    tags: vec![types::Tag {
+                        k: "amenity".into(),
+                        v: "school".into(),
+                    }],
+                }],
+                ways: vec![],
+                relations: vec![],
+            }],
+            creations: vec![],
+            deletions: vec![],
+        }
+    ),
+    case(
+        r#"
+        <osmChange version="0.6" generator="acme osm editor">
+            <modify>
+                <node id="1234" changeset="42" version="2" timestamp="2009-12-09T08:19:00Z" visible="true">
+                    <tag k="amenity" v="school"/>
+                </node>
+            </modify>
+        </osmChange>
+        "#,
+        types::ChangesetChanges {
+            modifications: vec![types::Modification {
+                nodes: vec![types::Node {
+                    id: 1234,
+                    changeset: 42,
+                    version: 2,
+                    uid: None,
+                    timestamp: "2009-12-09T08:19:00Z".into(),
+                    user: None,
+                    visible: true,
+                    lat: None,
+                    lon: None,
                     tags: vec![types::Tag {
                         k: "amenity".into(),
                         v: "school".into(),
@@ -357,12 +391,12 @@ async fn test_download(
                     id: 1234,
                     changeset: 42,
                     version: 2,
-                    uid: 1,
+                    uid: Some(1),
                     timestamp: "2009-12-09T08:19:00Z".into(),
-                    user: "user".into(),
+                    user: Some("user".into()),
                     visible: true,
-                    lat: 12.1234567,
-                    lon: -8.7654321,
+                    lat:Some( 12.1234567),
+                    lon: Some(-8.7654321),
                     tags: vec![types::Tag {
                         k: "amenity".into(),
                         v: "school".into(),

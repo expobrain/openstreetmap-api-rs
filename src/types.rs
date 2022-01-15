@@ -92,10 +92,10 @@ pub struct Node {
     pub version: u64,
     pub changeset: u64,
     pub timestamp: String,
-    pub user: String,
-    pub uid: u64,
-    pub lat: f64,
-    pub lon: f64,
+    pub user: Option<String>,
+    pub uid: Option<u64>,
+    pub lat: Option<f64>,
+    pub lon: Option<f64>,
     #[serde(rename = "tag", default)]
     pub tags: Vec<Tag>,
 }
