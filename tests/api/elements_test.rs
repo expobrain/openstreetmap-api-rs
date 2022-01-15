@@ -6,6 +6,7 @@ use wiremock::matchers::{method, path, query_param, QueryParamExactMatcher};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::utils::credentials;
+use super::utils::no_credentials;
 
 #[rstest(node, response_str, expected,
     case(
@@ -88,7 +89,7 @@ async fn test_create_element(
 )]
 #[actix_rt::test]
 async fn test_get(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     element_id: u64,
     response_str: &str,
     expected: types::Node,
@@ -108,7 +109,7 @@ async fn test_get(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.nodes().get(element_id).await.unwrap();
@@ -250,7 +251,7 @@ async fn test_delete_element(
 )]
 #[actix_rt::test]
 async fn test_history(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     element_id: u64,
     response_str: &str,
     expected: Vec<types::Node>,
@@ -270,7 +271,7 @@ async fn test_history(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.nodes().history(element_id).await.unwrap();
@@ -309,7 +310,7 @@ async fn test_history(
 )]
 #[actix_rt::test]
 async fn test_version(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     element_id: u64,
     version_id: u64,
     response_str: &str,
@@ -330,7 +331,7 @@ async fn test_version(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client
@@ -443,7 +444,7 @@ async fn test_version(
 )]
 #[actix_rt::test]
 async fn test_multi_get(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     element_id_params: Vec<types::ElementIdParam>,
     request_qs: QueryParamExactMatcher,
     response_str: &str,
@@ -464,7 +465,7 @@ async fn test_multi_get(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.nodes().multi_get(element_id_params).await.unwrap();
@@ -502,7 +503,7 @@ async fn test_multi_get(
 )]
 #[actix_rt::test]
 async fn test_relations(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     element_id: u64,
     response_str: &str,
     expected: Vec<types::Relation>,
@@ -522,7 +523,7 @@ async fn test_relations(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.nodes().relations(element_id).await.unwrap();
@@ -556,7 +557,7 @@ async fn test_relations(
 )]
 #[actix_rt::test]
 async fn test_ways(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     node_id: u64,
     response_str: &str,
     expected: Vec<types::Way>,
@@ -576,7 +577,7 @@ async fn test_ways(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.nodes().ways(node_id).await.unwrap();
@@ -623,7 +624,7 @@ async fn test_ways(
 )]
 #[actix_rt::test]
 async fn test_way_full(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     way_id: u64,
     response_str: &str,
     expected: types::WayFull,
@@ -643,7 +644,7 @@ async fn test_way_full(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.ways().full(way_id).await.unwrap();
@@ -708,7 +709,7 @@ async fn test_way_full(
 )]
 #[actix_rt::test]
 async fn test_relation_full(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     relation_id: u64,
     response_str: &str,
     expected: types::RelationFull,
@@ -728,7 +729,7 @@ async fn test_relation_full(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.relations().full(relation_id).await.unwrap();

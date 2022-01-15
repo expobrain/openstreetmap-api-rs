@@ -5,6 +5,7 @@ use std::fmt;
 #[derive(Debug, Clone)]
 pub enum Credentials {
     Basic(String, String), // Username, password
+    None,
 }
 
 pub enum RequestBody<S: Serialize> {

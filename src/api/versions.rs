@@ -1,6 +1,7 @@
 use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
+use crate::RequestOptions;
 
 #[derive(Debug, Deserialize)]
 struct Version {
@@ -30,9 +31,9 @@ impl Versions {
             .client
             .request::<(), Osm>(
                 reqwest::Method::GET,
-                None,
                 "versions",
                 types::RequestBody::None,
+                RequestOptions::new(),
             )
             .await?
             .versions

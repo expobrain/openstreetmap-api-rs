@@ -1,6 +1,7 @@
 use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
+use crate::RequestOptions;
 
 #[derive(Debug, Deserialize)]
 struct Osm {
@@ -97,9 +98,9 @@ impl Capabilities {
             .client
             .request::<(), Osm>(
                 reqwest::Method::GET,
-                None,
                 "capabilities",
                 types::RequestBody::None,
+                RequestOptions::new(),
             )
             .await?
             .into();

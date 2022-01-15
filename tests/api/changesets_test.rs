@@ -5,7 +5,7 @@ use rstest::*;
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
-use super::utils::credentials;
+use super::utils::no_credentials;
 
 #[fixture]
 fn response_str() -> String {
@@ -41,7 +41,7 @@ fn response_str() -> String {
 )]
 #[actix_rt::test]
 async fn test_get(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     response_str: String,
     expected: Vec<types::Changeset>,
 ) {
@@ -60,7 +60,7 @@ async fn test_get(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let query = types::ChangesetQueryParams::default();
@@ -72,7 +72,7 @@ async fn test_get(
 
 #[rstest]
 #[actix_rt::test]
-async fn test_get_with_query(credentials: types::Credentials, response_str: String) {
+async fn test_get_with_query(no_credentials: types::Credentials, response_str: String) {
     /*
     GIVEN an OSM client
     WHEN calling the get() function with a non-default query
@@ -90,7 +90,7 @@ async fn test_get_with_query(credentials: types::Credentials, response_str: Stri
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let query = types::ChangesetQueryParams {

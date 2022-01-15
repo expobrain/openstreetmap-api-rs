@@ -1,6 +1,7 @@
 use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
+use crate::RequestOptions;
 
 #[derive(Debug, Deserialize)]
 struct Bounds {
@@ -61,10 +62,11 @@ impl Map {
         );
         let map = self
             .client
-            .request_including_version::<(), Osm>(
+            .request::<(), Osm>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .into();

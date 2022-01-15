@@ -5,6 +5,7 @@ use wiremock::matchers::{method, path, query_param, QueryParamExactMatcher};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::utils::credentials;
+use super::utils::no_credentials;
 
 #[fixture]
 fn note() -> types::Note {
@@ -74,7 +75,7 @@ fn note_response() -> &'static str {
 )]
 #[actix_rt::test]
 async fn test_get_by_bounding_box(
-    credentials: types::Credentials,
+    no_credentials: types::Credentials,
     bbox: types::BoundingBox,
     request_qs: QueryParamExactMatcher,
     note_response: &str,
@@ -95,7 +96,7 @@ async fn test_get_by_bounding_box(
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.notes().get_by_bounding_box(&bbox).await.unwrap();
@@ -106,7 +107,7 @@ async fn test_get_by_bounding_box(
 
 #[rstest]
 #[actix_rt::test]
-async fn test_get(credentials: types::Credentials, note_response: &str, note: types::Note) {
+async fn test_get(no_credentials: types::Credentials, note_response: &str, note: types::Note) {
     /*
     GIVEN an OSM client
     WHEN calling the get() function
@@ -121,7 +122,7 @@ async fn test_get(credentials: types::Credentials, note_response: &str, note: ty
         .mount(&mock_server)
         .await;
 
-    let client = Openstreetmap::new(mock_server.uri(), credentials);
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
     let actual = client.notes().get(note.id).await.unwrap();

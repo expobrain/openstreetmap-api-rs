@@ -1,6 +1,7 @@
 use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
+use crate::RequestOptions;
 
 use serde::de::{self, Deserialize, DeserializeOwned, Deserializer};
 use serde::ser::{Serialize, SerializeMap, Serializer};
@@ -433,7 +434,12 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
         let element_id = self
             .client
-            .request_including_version::<OsmSingle<E>, u64>(reqwest::Method::PUT, &url, body)
+            .request::<OsmSingle<E>, u64>(
+                reqwest::Method::PUT,
+                &url,
+                body,
+                RequestOptions::new().with_version().with_auth(),
+            )
             .await?;
 
         Ok(element_id)
@@ -443,10 +449,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
         let url = format!("{}{}", E::base_url(), element_id);
         let element = self
             .client
-            .request_including_version::<u64, OsmSingle<E>>(
+            .request::<u64, OsmSingle<E>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .element;
@@ -460,7 +467,12 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
         let version = self
             .client
-            .request_including_version::<OsmSingle<E>, u64>(reqwest::Method::PUT, &url, body)
+            .request::<OsmSingle<E>, u64>(
+                reqwest::Method::PUT,
+                &url,
+                body,
+                RequestOptions::new().with_version().with_auth(),
+            )
             .await?;
 
         Ok(version)
@@ -472,7 +484,12 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
         let version = self
             .client
-            .request_including_version::<OsmSingle<E>, u64>(reqwest::Method::DELETE, &url, body)
+            .request::<OsmSingle<E>, u64>(
+                reqwest::Method::DELETE,
+                &url,
+                body,
+                RequestOptions::new().with_version().with_auth(),
+            )
             .await?;
 
         Ok(version)
@@ -482,10 +499,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
         let url = format!("{}{}/history", E::base_url(), element_id);
         let elements = self
             .client
-            .request_including_version::<u64, OsmList<E>>(
+            .request::<u64, OsmList<E>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .elements;
@@ -497,10 +515,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
         let url = format!("{}{}/{}", E::base_url(), element_id, version_id);
         let element = self
             .client
-            .request_including_version::<u64, OsmSingle<E>>(
+            .request::<u64, OsmSingle<E>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .element;
@@ -522,10 +541,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
         let elements = self
             .client
-            .request_including_version::<u64, OsmList<E>>(
+            .request::<u64, OsmList<E>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .elements;
@@ -540,10 +560,11 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
         let url = format!("{}{}/relations", E::base_url(), element_id);
         let elements = self
             .client
-            .request_including_version::<u64, OsmList<types::Relation>>(
+            .request::<u64, OsmList<types::Relation>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .elements;
@@ -557,10 +578,11 @@ impl Elements<types::Node> {
         let url = format!("node/{}/ways", node_id);
         let elements = self
             .client
-            .request_including_version::<u64, OsmList<types::Way>>(
+            .request::<u64, OsmList<types::Way>>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .elements;
@@ -574,10 +596,11 @@ impl Elements<types::Way> {
         let url = format!("way/{}/full", way_id);
         let full = self
             .client
-            .request_including_version::<u64, types::WayFull>(
+            .request::<u64, types::WayFull>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?;
 
@@ -590,10 +613,11 @@ impl Elements<types::Relation> {
         let url = format!("relation/{}/full", relation_id);
         let full = self
             .client
-            .request_including_version::<u64, types::RelationFull>(
+            .request::<u64, types::RelationFull>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?;
 

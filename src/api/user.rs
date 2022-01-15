@@ -1,6 +1,7 @@
 use crate::errors::OpenstreetmapError;
 use crate::types;
 use crate::Openstreetmap;
+use crate::RequestOptions;
 
 #[derive(Debug, PartialEq, Deserialize)]
 struct OsmSingle {
@@ -163,10 +164,11 @@ impl User {
 
         let user = self
             .client
-            .request_including_version::<(), OsmSingle>(
+            .request::<(), OsmSingle>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .user
@@ -186,10 +188,11 @@ impl User {
 
         let users = self
             .client
-            .request_including_version::<(), OsmList>(
+            .request::<(), OsmList>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .users
@@ -203,10 +206,11 @@ impl User {
     pub async fn details(&self) -> Result<types::User, OpenstreetmapError> {
         let user = self
             .client
-            .request_including_version::<(), OsmSingle>(
+            .request::<(), OsmSingle>(
                 reqwest::Method::GET,
                 "user/details",
                 types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?
             .user
@@ -218,10 +222,11 @@ impl User {
     pub async fn preferences(&self) -> Result<types::UserPreferences, OpenstreetmapError> {
         let user = self
             .client
-            .request_including_version::<(), OsmPreferences>(
+            .request::<(), OsmPreferences>(
                 reqwest::Method::GET,
                 "user/preferences",
                 types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?
             .into();
@@ -237,10 +242,11 @@ impl User {
 
         // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
         self.client
-            .request_including_version::<OsmPreferences, Vec<u8>>(
+            .request::<OsmPreferences, Vec<u8>>(
                 reqwest::Method::PUT,
                 "user/preferences",
                 payload,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?;
 
@@ -252,10 +258,11 @@ impl User {
 
         let user = self
             .client
-            .request_including_version::<(), String>(
+            .request::<(), String>(
                 reqwest::Method::GET,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?;
 
@@ -271,7 +278,12 @@ impl User {
         let payload = types::RequestBody::RawForm(value.into());
 
         self.client
-            .request_including_version::<String, Vec<u8>>(reqwest::Method::PUT, &url, payload)
+            .request::<String, Vec<u8>>(
+                reqwest::Method::PUT,
+                &url,
+                payload,
+                RequestOptions::new().with_version().with_auth(),
+            )
             .await?;
 
         Ok(())
@@ -282,10 +294,11 @@ impl User {
 
         // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
         self.client
-            .request_including_version::<(), Vec<u8>>(
+            .request::<(), Vec<u8>>(
                 reqwest::Method::DELETE,
                 &url,
                 types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?;
 

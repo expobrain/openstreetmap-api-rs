@@ -1,6 +1,7 @@
 use crate::types;
 use crate::Openstreetmap;
 use crate::OpenstreetmapError;
+use crate::RequestOptions;
 
 #[derive(Debug, Deserialize)]
 struct InnerPermissions {
@@ -28,10 +29,11 @@ impl Permissions {
     pub async fn get(&self) -> Result<Vec<types::Permission>, OpenstreetmapError> {
         let permissions = self
             .client
-            .request_including_version::<(), Osm>(
+            .request::<(), Osm>(
                 reqwest::Method::GET,
                 "permissions",
                 types::RequestBody::None,
+                RequestOptions::new().with_version(),
             )
             .await?
             .inner_permissions
