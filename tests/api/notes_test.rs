@@ -62,7 +62,7 @@ fn note_response() -> &'static str {
     "#
 }
 
-#[rstest(bbox, request_qs,
+#[rstest(bbox, limit, closed, request_params,
     case(
         types::BoundingBox {
             left: 1.0,
@@ -70,14 +70,51 @@ fn note_response() -> &'static str {
             right: 3.0,
             top: 4.0,
         },
-        query_param("bbox", "1,2,3,4"),
+        None,
+        None,
+        vec!(query_param("bbox", "1,2,3,4")),
+    ),
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        Some(100),
+        None,
+        vec!(query_param("bbox", "1,2,3,4"), query_param("limit", "100")),
+    ),
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        None,
+        Some(10),
+        vec!(query_param("bbox", "1,2,3,4"), query_param("closed", "10")),
+    ),
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        None,
+        Some(-1),
+        vec!(query_param("bbox", "1,2,3,4"), query_param("closed", "-1")),
     )
 )]
 #[actix_rt::test]
 async fn test_get_by_bounding_box(
     no_credentials: types::Credentials,
     bbox: types::BoundingBox,
-    request_qs: QueryParamExactMatcher,
+    limit: Option<u16>,
+    closed: Option<i64>,
+    request_params: Vec<QueryParamExactMatcher>,
     note_response: &str,
     notes: Vec<types::Note>,
 ) {
@@ -88,10 +125,13 @@ async fn test_get_by_bounding_box(
     */
     // GIVEN
     let mock_server = MockServer::start().await;
+    let mut mock = Mock::given(method("GET"));
 
-    Mock::given(method("GET"))
-        .and(path("/api/0.6/notes"))
-        .and(request_qs)
+    for request_param in request_params {
+        mock = mock.and(request_param);
+    }
+
+    mock.and(path("/api/0.6/notes"))
         .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -99,7 +139,11 @@ async fn test_get_by_bounding_box(
     let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
-    let actual = client.notes().get_by_bounding_box(&bbox).await.unwrap();
+    let actual = client
+        .notes()
+        .get_by_bounding_box(&bbox, limit, closed)
+        .await
+        .unwrap();
 
     // THEN
     assert_eq!(actual, notes);

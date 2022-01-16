@@ -65,11 +65,21 @@ impl Notes {
     pub async fn get_by_bounding_box(
         &self,
         bbox: &types::BoundingBox,
+        limit: Option<u16>,
+        closed: Option<i64>,
     ) -> Result<Vec<types::Note>, OpenstreetmapError> {
-        let url = format!(
+        let mut url = format!(
             "notes?bbox={},{},{},{}",
             bbox.left, bbox.bottom, bbox.right, bbox.top
         );
+
+        if let Some(limit_value) = limit {
+            url = format!("{url}&limit={limit_value}");
+        }
+
+        if let Some(closed_value) = closed {
+            url = format!("{url}&closed={closed_value}");
+        }
 
         let notes = self
             .client
