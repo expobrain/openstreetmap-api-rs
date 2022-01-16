@@ -344,3 +344,137 @@ async fn test_reopen(
     // THEN
     assert_eq!(actual, note);
 }
+
+#[rstest(search_options, request_params,
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), ..Default::default()
+        },
+        vec!(query_param("q", "SearchTerm")),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), limit: Some(10), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("limit", "10")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), closed: Some(7), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("closed", "7")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), closed: Some(-1), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("closed", "-1")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            display_name: Some("User_name".into()),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("display_name", "User_name")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), user: Some(12), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("user", "12")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            from: Some("2020-12-09T22:51:17Z".into()),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("from", "2020-12-09T22:51:17Z")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            to: Some("2020-12-09T22:51:17Z".into()),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("to", "2020-12-09T22:51:17Z")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            sort: Some(types::NoteSearchSortOption::CreatedAt),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("sort", "created_at")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            order: Some(types::NoteSearchOrderOption::Oldest),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("order", "oldest")
+        ),
+    ),
+)]
+#[actix_rt::test]
+async fn test_search(
+    no_credentials: types::Credentials,
+    search_options: types::NoteSearchOptions,
+    request_params: Vec<QueryParamExactMatcher>,
+    note_response: &str,
+    notes: Vec<types::Note>,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the search() function with options
+    THEN returns a list of notes
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+    let mut mock = Mock::given(method("GET"));
+
+    for request_param in request_params {
+        mock = mock.and(request_param);
+    }
+
+    mock.and(path("/api/0.6/notes/search"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
+
+    // WHEN
+    let actual = client.notes().search(&search_options).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, notes);
+}

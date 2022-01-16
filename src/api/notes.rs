@@ -207,6 +207,30 @@ impl Notes {
 
         Ok(note)
     }
+
+    pub async fn search(
+        &self,
+        search_options: &types::NoteSearchOptions,
+    ) -> Result<Vec<types::Note>, OpenstreetmapError> {
+        let qs = serde_urlencoded::to_string(search_options)?;
+        let url = format!("notes/search?{qs}");
+
+        let notes = self
+            .client
+            .request::<(), OsmList>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version(),
+            )
+            .await?
+            .notes
+            .into_iter()
+            .map(|n| n.into())
+            .collect();
+
+        Ok(notes)
+    }
 }
 
 #[cfg(test)]
