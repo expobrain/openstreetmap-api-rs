@@ -218,3 +218,45 @@ async fn test_create(
     // THEN
     assert_eq!(actual, note);
 }
+
+#[rstest(
+    text,
+    request_param,
+    case(
+        "ThisIsANoteComment",
+        query_param("text", encode("ThisIsANoteComment")),
+    )
+)]
+#[rstest]
+#[actix_rt::test]
+async fn test_create_comment(
+    credentials: types::Credentials,
+    text: &str,
+    request_param: QueryParamExactMatcher,
+    note_response: &str,
+    note: types::Note,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the create_comment() function with a text as comment
+    THEN returns a note
+    */
+    // GIVEN
+    let note_id = note.id;
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path(format!("/api/0.6/notes/{note_id}/comment")))
+        .and(request_param)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.notes().create_comment(note.id, &text).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, note);
+}
