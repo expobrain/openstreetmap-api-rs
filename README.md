@@ -12,7 +12,7 @@ Add this to your Cargo.toml:
 
 ```toml
 [dependencies]
-openstreetmap-api = "0.1"
+openstreetmap-api = "0.2"
 ```
 
 To get started using the client, see [the docs](https://docs.rs/openstreetmap-api).
