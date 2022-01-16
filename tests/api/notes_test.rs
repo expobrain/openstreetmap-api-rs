@@ -1,6 +1,7 @@
 use openstreetmap_api::types;
 use openstreetmap_api::Openstreetmap;
 use rstest::*;
+use urlencoding::encode;
 use wiremock::matchers::{method, path, query_param, QueryParamExactMatcher};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -202,6 +203,9 @@ async fn test_create(
 
     Mock::given(method("POST"))
         .and(path("/api/0.6/notes"))
+        .and(query_param("lat", note_content.lat.to_string()))
+        .and(query_param("lon", note_content.lon.to_string()))
+        .and(query_param("text", encode(&note_content.text)))
         .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
         .mount(&mock_server)
         .await;

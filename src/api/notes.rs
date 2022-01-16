@@ -3,6 +3,8 @@ use crate::types;
 use crate::Openstreetmap;
 use crate::RequestOptions;
 
+use urlencoding::encode;
+
 #[derive(Debug, Default, PartialEq, Deserialize)]
 pub struct CommentsRaw {
     #[serde(default, rename = "comment")]
@@ -120,12 +122,18 @@ impl Notes {
         &self,
         note_content: types::NoteContent,
     ) -> Result<types::Note, OpenstreetmapError> {
+        let text_encoded = encode(&note_content.text);
+        let lat = note_content.lat;
+        let lon = note_content.lon;
+
+        let url = format!("notes?lat={lat}&lon={lon}&text={text_encoded}");
+
         let note = self
             .client
             .request::<types::NoteContent, OsmSingle>(
                 reqwest::Method::POST,
-                "notes",
-                types::RequestBody::Form(note_content),
+                &url,
+                types::RequestBody::None,
                 RequestOptions::new().with_version().with_auth(),
             )
             .await?
