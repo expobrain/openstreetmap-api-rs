@@ -302,3 +302,45 @@ async fn test_close(
     // THEN
     assert_eq!(actual, note);
 }
+
+#[rstest(
+    text,
+    request_param,
+    case(
+        "ThisIsANoteComment",
+        query_param("text", encode("ThisIsANoteComment")),
+    )
+)]
+#[rstest]
+#[actix_rt::test]
+async fn test_reopen(
+    credentials: types::Credentials,
+    text: &str,
+    request_param: QueryParamExactMatcher,
+    note_response: &str,
+    note: types::Note,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the reopen() function with a text as comment
+    THEN returns a note
+    */
+    // GIVEN
+    let note_id = note.id;
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path(format!("/api/0.6/notes/{note_id}/reopen")))
+        .and(request_param)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.notes().reopen(note.id, &text).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, note);
+}
