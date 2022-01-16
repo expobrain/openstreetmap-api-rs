@@ -165,6 +165,25 @@ impl Notes {
 
         Ok(note)
     }
+
+    pub async fn close(&self, note_id: u64, text: &str) -> Result<types::Note, OpenstreetmapError> {
+        let text_encoded = encode(text);
+        let url = format!("notes/{note_id}/close?text={text_encoded}");
+
+        let note = self
+            .client
+            .request::<(), OsmSingle>(
+                reqwest::Method::POST,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
+            )
+            .await?
+            .note
+            .into();
+
+        Ok(note)
+    }
 }
 
 #[cfg(test)]
