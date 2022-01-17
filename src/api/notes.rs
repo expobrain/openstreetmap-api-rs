@@ -231,6 +231,32 @@ impl Notes {
 
         Ok(notes)
     }
+
+    pub async fn feed_by_bounding_box(
+        &self,
+        bbox: &types::BoundingBox,
+    ) -> Result<Vec<types::Note>, OpenstreetmapError> {
+        let url = format!(
+            "notes/feed?bbox={},{},{},{}",
+            bbox.left, bbox.bottom, bbox.right, bbox.top
+        );
+
+        let notes = self
+            .client
+            .request::<(), OsmList>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version(),
+            )
+            .await?
+            .notes
+            .into_iter()
+            .map(|n| n.into())
+            .collect();
+
+        Ok(notes)
+    }
 }
 
 #[cfg(test)]

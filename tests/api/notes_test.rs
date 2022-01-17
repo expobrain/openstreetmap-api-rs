@@ -478,3 +478,46 @@ async fn test_search(
     // THEN
     assert_eq!(actual, notes);
 }
+
+#[rstest(bbox, request_param,
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        query_param("bbox", "1,2,3,4"),
+    )
+)]
+#[actix_rt::test]
+async fn test_feed_by_boundng_box(
+    no_credentials: types::Credentials,
+    bbox: types::BoundingBox,
+    request_param: QueryParamExactMatcher,
+    note_response: &str,
+    notes: Vec<types::Note>,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the feed_by_bounding_box() function with bounding box
+    THEN returns a list of notes
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/0.6/notes/feed"))
+        .and(request_param)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
+
+    // WHEN
+    let actual = client.notes().feed_by_bounding_box(&bbox).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, notes);
+}
