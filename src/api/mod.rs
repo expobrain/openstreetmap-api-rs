@@ -2,6 +2,7 @@ pub mod capabilities;
 pub mod changeset;
 pub mod changesets;
 pub mod elements;
+pub mod gps;
 pub mod map;
 pub mod notes;
 pub mod permissions;

@@ -126,6 +126,11 @@ impl Openstreetmap {
     }
 
     #[inline]
+    pub fn gps(&self) -> api::gps::Gps {
+        api::gps::Gps::new(self)
+    }
+
+    #[inline]
     pub async fn changesets(
         &self,
         query: types::ChangesetQueryParams,

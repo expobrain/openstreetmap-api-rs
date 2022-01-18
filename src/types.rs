@@ -459,3 +459,41 @@ pub struct NoteSearchOptions {
     pub sort: Option<NoteSearchSortOption>,
     pub order: Option<NoteSearchOrderOption>,
 }
+
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Link {
+    pub href: String,
+    pub text: Option<String>,
+    pub _type: Option<String>,
+}
+
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Waypoint {
+    #[serde(alias = "lat")]
+    pub lat: f64,
+    #[serde(alias = "lon")]
+    pub lon: f64,
+    pub time: Option<String>,
+}
+
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct TrackSegment {
+    #[serde(alias = "trkpt")]
+    pub points: Vec<Waypoint>,
+}
+
+#[derive(Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Track {
+    pub name: Option<String>,
+    pub comment: Option<String>,
+    #[serde(alias = "desc")]
+    pub description: Option<String>,
+    pub url: Option<String>,
+    pub source: Option<String>,
+    #[serde(default)]
+    pub links: Vec<Link>,
+    pub _type: Option<String>,
+    pub number: Option<u32>,
+    #[serde(default, alias = "trkseg")]
+    pub segments: Vec<TrackSegment>,
+}

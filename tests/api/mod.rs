@@ -2,6 +2,7 @@ mod capabilities_test;
 mod changeset_test;
 mod changesets_test;
 mod elements_test;
+mod gps_test;
 mod map_test;
 mod notes_test;
 mod permissions_test;
