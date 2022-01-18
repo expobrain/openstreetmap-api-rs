@@ -1,0 +1,53 @@
+name: "Example: Unit testing, formatting & linting"
+
+on: [push]
+
+defaults:
+  run:
+    working-directory: ./example
+
+jobs:
+  testing-formatting-linting:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+
+    strategy:
+      matrix:
+        include:
+          - rust: stable
+            experimental: false
+          - rust: nightly
+            experimental: true
+          - rust: beta
+            experimental: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v1
+        with:
+          key: example
+          target-dir: ./example/target
+          cache-on-failure: true
+
+      - name: build
+        run: cargo build
+
+      - uses: actions-rs/cargo@v1
+        name: clippy
+        with:
+          command: clippy
+          args: -- -D warnings
+
+      - uses: actions-rs/cargo@v1
+        name: fmt
+        with:
+          command: fmt
+          args: --all -- --check
