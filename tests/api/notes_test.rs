@@ -1,6 +1,7 @@
 use openstreetmap_api::types;
 use openstreetmap_api::Openstreetmap;
 use rstest::*;
+use urlencoding::encode;
 use wiremock::matchers::{method, path, query_param, QueryParamExactMatcher};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -62,7 +63,7 @@ fn note_response() -> &'static str {
     "#
 }
 
-#[rstest(bbox, request_qs,
+#[rstest(bbox, limit, closed, request_params,
     case(
         types::BoundingBox {
             left: 1.0,
@@ -70,14 +71,51 @@ fn note_response() -> &'static str {
             right: 3.0,
             top: 4.0,
         },
-        query_param("bbox", "1,2,3,4"),
+        None,
+        None,
+        vec!(query_param("bbox", "1,2,3,4")),
+    ),
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        Some(100),
+        None,
+        vec!(query_param("bbox", "1,2,3,4"), query_param("limit", "100")),
+    ),
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        None,
+        Some(10),
+        vec!(query_param("bbox", "1,2,3,4"), query_param("closed", "10")),
+    ),
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        None,
+        Some(-1),
+        vec!(query_param("bbox", "1,2,3,4"), query_param("closed", "-1")),
     )
 )]
 #[actix_rt::test]
 async fn test_get_by_bounding_box(
     no_credentials: types::Credentials,
     bbox: types::BoundingBox,
-    request_qs: QueryParamExactMatcher,
+    limit: Option<u16>,
+    closed: Option<i64>,
+    request_params: Vec<QueryParamExactMatcher>,
     note_response: &str,
     notes: Vec<types::Note>,
 ) {
@@ -88,10 +126,13 @@ async fn test_get_by_bounding_box(
     */
     // GIVEN
     let mock_server = MockServer::start().await;
+    let mut mock = Mock::given(method("GET"));
 
-    Mock::given(method("GET"))
-        .and(path("/api/0.6/notes"))
-        .and(request_qs)
+    for request_param in request_params {
+        mock = mock.and(request_param);
+    }
+
+    mock.and(path("/api/0.6/notes"))
         .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -99,7 +140,11 @@ async fn test_get_by_bounding_box(
     let client = Openstreetmap::new(mock_server.uri(), no_credentials);
 
     // WHEN
-    let actual = client.notes().get_by_bounding_box(&bbox).await.unwrap();
+    let actual = client
+        .notes()
+        .get_by_bounding_box(&bbox, limit, closed)
+        .await
+        .unwrap();
 
     // THEN
     assert_eq!(actual, notes);
@@ -158,6 +203,9 @@ async fn test_create(
 
     Mock::given(method("POST"))
         .and(path("/api/0.6/notes"))
+        .and(query_param("lat", note_content.lat.to_string()))
+        .and(query_param("lon", note_content.lon.to_string()))
+        .and(query_param("text", encode(&note_content.text)))
         .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -169,4 +217,307 @@ async fn test_create(
 
     // THEN
     assert_eq!(actual, note);
+}
+
+#[rstest(
+    text,
+    request_param,
+    case(
+        "ThisIsANoteComment",
+        query_param("text", encode("ThisIsANoteComment")),
+    )
+)]
+#[rstest]
+#[actix_rt::test]
+async fn test_create_comment(
+    credentials: types::Credentials,
+    text: &str,
+    request_param: QueryParamExactMatcher,
+    note_response: &str,
+    note: types::Note,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the create_comment() function with a text as comment
+    THEN returns a note
+    */
+    // GIVEN
+    let note_id = note.id;
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path(format!("/api/0.6/notes/{note_id}/comment")))
+        .and(request_param)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.notes().create_comment(note.id, &text).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, note);
+}
+
+#[rstest(
+    text,
+    request_param,
+    case(
+        "ThisIsANoteComment",
+        query_param("text", encode("ThisIsANoteComment")),
+    )
+)]
+#[rstest]
+#[actix_rt::test]
+async fn test_close(
+    credentials: types::Credentials,
+    text: &str,
+    request_param: QueryParamExactMatcher,
+    note_response: &str,
+    note: types::Note,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the close() function with a text as comment
+    THEN returns a note
+    */
+    // GIVEN
+    let note_id = note.id;
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path(format!("/api/0.6/notes/{note_id}/close")))
+        .and(request_param)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.notes().close(note.id, &text).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, note);
+}
+
+#[rstest(
+    text,
+    request_param,
+    case(
+        "ThisIsANoteComment",
+        query_param("text", encode("ThisIsANoteComment")),
+    )
+)]
+#[rstest]
+#[actix_rt::test]
+async fn test_reopen(
+    credentials: types::Credentials,
+    text: &str,
+    request_param: QueryParamExactMatcher,
+    note_response: &str,
+    note: types::Note,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the reopen() function with a text as comment
+    THEN returns a note
+    */
+    // GIVEN
+    let note_id = note.id;
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path(format!("/api/0.6/notes/{note_id}/reopen")))
+        .and(request_param)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.notes().reopen(note.id, &text).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, note);
+}
+
+#[rstest(search_options, request_params,
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), ..Default::default()
+        },
+        vec!(query_param("q", "SearchTerm")),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), limit: Some(10), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("limit", "10")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), closed: Some(7), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("closed", "7")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), closed: Some(-1), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("closed", "-1")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            display_name: Some("User_name".into()),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("display_name", "User_name")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(), user: Some(12), ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("user", "12")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            from: Some("2020-12-09T22:51:17Z".into()),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("from", "2020-12-09T22:51:17Z")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            to: Some("2020-12-09T22:51:17Z".into()),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("to", "2020-12-09T22:51:17Z")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            sort: Some(types::NoteSearchSortOption::CreatedAt),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("sort", "created_at")
+        ),
+    ),
+    case(
+        types::NoteSearchOptions {
+            q: "SearchTerm".into(),
+            order: Some(types::NoteSearchOrderOption::Oldest),
+            ..Default::default()
+        },
+        vec!(
+            query_param("q", "SearchTerm"),
+            query_param("order", "oldest")
+        ),
+    ),
+)]
+#[actix_rt::test]
+async fn test_search(
+    no_credentials: types::Credentials,
+    search_options: types::NoteSearchOptions,
+    request_params: Vec<QueryParamExactMatcher>,
+    note_response: &str,
+    notes: Vec<types::Note>,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the search() function with options
+    THEN returns a list of notes
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+    let mut mock = Mock::given(method("GET"));
+
+    for request_param in request_params {
+        mock = mock.and(request_param);
+    }
+
+    mock.and(path("/api/0.6/notes/search"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
+
+    // WHEN
+    let actual = client.notes().search(&search_options).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, notes);
+}
+
+#[rstest(bbox, request_param,
+    case(
+        types::BoundingBox {
+            left: 1.0,
+            bottom: 2.0,
+            right: 3.0,
+            top: 4.0,
+        },
+        query_param("bbox", "1,2,3,4"),
+    )
+)]
+#[actix_rt::test]
+async fn test_feed_by_boundng_box(
+    no_credentials: types::Credentials,
+    bbox: types::BoundingBox,
+    request_param: QueryParamExactMatcher,
+    note_response: &str,
+    notes: Vec<types::Note>,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the feed_by_bounding_box() function with bounding box
+    THEN returns a list of notes
+    */
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/0.6/notes/feed"))
+        .and(request_param)
+        .respond_with(ResponseTemplate::new(200).set_body_raw(note_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), no_credentials);
+
+    // WHEN
+    let actual = client.notes().feed_by_bounding_box(&bbox).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, notes);
 }

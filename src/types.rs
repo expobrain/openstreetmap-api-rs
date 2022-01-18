@@ -432,3 +432,30 @@ pub struct NoteContent {
     pub lon: f64,
     pub text: String,
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NoteSearchSortOption {
+    CreatedAt,
+    UpdatedAt,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum NoteSearchOrderOption {
+    Oldest,
+    Newest,
+}
+
+#[derive(Debug, Default, Serialize)]
+pub struct NoteSearchOptions {
+    pub q: String,
+    pub limit: Option<u16>,
+    pub closed: Option<i64>,
+    pub display_name: Option<String>,
+    pub user: Option<u64>,
+    pub from: Option<String>,
+    pub to: Option<String>,
+    pub sort: Option<NoteSearchSortOption>,
+    pub order: Option<NoteSearchOrderOption>,
+}

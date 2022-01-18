@@ -3,6 +3,8 @@ use crate::types;
 use crate::Openstreetmap;
 use crate::RequestOptions;
 
+use urlencoding::encode;
+
 #[derive(Debug, Default, PartialEq, Deserialize)]
 pub struct CommentsRaw {
     #[serde(default, rename = "comment")]
@@ -65,11 +67,21 @@ impl Notes {
     pub async fn get_by_bounding_box(
         &self,
         bbox: &types::BoundingBox,
+        limit: Option<u16>,
+        closed: Option<i64>,
     ) -> Result<Vec<types::Note>, OpenstreetmapError> {
-        let url = format!(
+        let mut url = format!(
             "notes?bbox={},{},{},{}",
             bbox.left, bbox.bottom, bbox.right, bbox.top
         );
+
+        if let Some(limit_value) = limit {
+            url = format!("{url}&limit={limit_value}");
+        }
+
+        if let Some(closed_value) = closed {
+            url = format!("{url}&closed={closed_value}");
+        }
 
         let notes = self
             .client
@@ -110,12 +122,18 @@ impl Notes {
         &self,
         note_content: types::NoteContent,
     ) -> Result<types::Note, OpenstreetmapError> {
+        let text_encoded = encode(&note_content.text);
+        let lat = note_content.lat;
+        let lon = note_content.lon;
+
+        let url = format!("notes?lat={lat}&lon={lon}&text={text_encoded}");
+
         let note = self
             .client
             .request::<types::NoteContent, OsmSingle>(
                 reqwest::Method::POST,
-                "notes",
-                types::RequestBody::Form(note_content),
+                &url,
+                types::RequestBody::None,
                 RequestOptions::new().with_version().with_auth(),
             )
             .await?
@@ -123,6 +141,121 @@ impl Notes {
             .into();
 
         Ok(note)
+    }
+
+    pub async fn create_comment(
+        &self,
+        note_id: u64,
+        text: &str,
+    ) -> Result<types::Note, OpenstreetmapError> {
+        let text_encoded = encode(text);
+        let url = format!("notes/{note_id}/comment?text={text_encoded}");
+
+        let note = self
+            .client
+            .request::<(), OsmSingle>(
+                reqwest::Method::POST,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
+            )
+            .await?
+            .note
+            .into();
+
+        Ok(note)
+    }
+
+    pub async fn close(&self, note_id: u64, text: &str) -> Result<types::Note, OpenstreetmapError> {
+        let text_encoded = encode(text);
+        let url = format!("notes/{note_id}/close?text={text_encoded}");
+
+        let note = self
+            .client
+            .request::<(), OsmSingle>(
+                reqwest::Method::POST,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
+            )
+            .await?
+            .note
+            .into();
+
+        Ok(note)
+    }
+
+    pub async fn reopen(
+        &self,
+        note_id: u64,
+        text: &str,
+    ) -> Result<types::Note, OpenstreetmapError> {
+        let text_encoded = encode(text);
+        let url = format!("notes/{note_id}/reopen?text={text_encoded}");
+
+        let note = self
+            .client
+            .request::<(), OsmSingle>(
+                reqwest::Method::POST,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version().with_auth(),
+            )
+            .await?
+            .note
+            .into();
+
+        Ok(note)
+    }
+
+    pub async fn search(
+        &self,
+        search_options: &types::NoteSearchOptions,
+    ) -> Result<Vec<types::Note>, OpenstreetmapError> {
+        let qs = serde_urlencoded::to_string(search_options)?;
+        let url = format!("notes/search?{qs}");
+
+        let notes = self
+            .client
+            .request::<(), OsmList>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version(),
+            )
+            .await?
+            .notes
+            .into_iter()
+            .map(|n| n.into())
+            .collect();
+
+        Ok(notes)
+    }
+
+    pub async fn feed_by_bounding_box(
+        &self,
+        bbox: &types::BoundingBox,
+    ) -> Result<Vec<types::Note>, OpenstreetmapError> {
+        let url = format!(
+            "notes/feed?bbox={},{},{},{}",
+            bbox.left, bbox.bottom, bbox.right, bbox.top
+        );
+
+        let notes = self
+            .client
+            .request::<(), OsmList>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version(),
+            )
+            .await?
+            .notes
+            .into_iter()
+            .map(|n| n.into())
+            .collect();
+
+        Ok(notes)
     }
 }
 
