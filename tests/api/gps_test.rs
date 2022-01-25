@@ -5,6 +5,7 @@ use rstest::*;
 use wiremock::matchers::{method, path, query_param, QueryParamExactMatcher};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
+use super::utils::credentials;
 use super::utils::no_credentials;
 
 #[fixture]
@@ -101,4 +102,31 @@ async fn test_get_by_bounding_box(
 
     // THEN
     assert_eq!(actual, gpx_list);
+}
+
+#[rstest(gpx_id, case(10))]
+#[actix_rt::test]
+async fn test_delete(credentials: types::Credentials, gpx_id: u64) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the delete() function
+    THEN returns nothing
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("DELETE"))
+        .and(path(format!("/api/0.6/gpx/{gpx_id}")))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.gps().delete(gpx_id).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, ());
 }

@@ -47,4 +47,20 @@ impl Gps {
 
         Ok(tracks)
     }
+
+    pub async fn delete(&self, gpx_id: u64) -> Result<(), OpenstreetmapError> {
+        let url = format!("gpx/{gpx_id}");
+
+        // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
+        self.client
+            .request::<(), Vec<u8>>(
+                reqwest::Method::DELETE,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version(),
+            )
+            .await?;
+
+        Ok(())
+    }
 }
