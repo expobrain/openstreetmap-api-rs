@@ -27,6 +27,36 @@ fn gpx_response() -> &'static str {
 }
 
 #[fixture]
+fn metadata_response() -> &'static str {
+    r#"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <osm version="0.6" generator="OpenStreetMap server">
+        <gpx_file id="836619" name="track.gpx" lat="52.0194" lon="8.51807" user="Hartmut Holzgraefe" visibility="public" pending="false" timestamp="2010-10-09T09:24:19Z">
+            <description>PHP upload test</description>
+            <tag>test</tag>
+            <tag>php</tag>
+        </gpx_file>
+    </osm>
+    "#
+}
+
+#[fixture]
+fn metadata() -> types::Metadata {
+    types::Metadata {
+        id: 836619,
+        name: Some("track.gpx".into()),
+        lat: 52.0194,
+        lon: 8.51807,
+        user: Some("Hartmut Holzgraefe".into()),
+        visibility: Some("public".into()),
+        pending: false,
+        time: Some("2010-10-09T09:24:19Z".into()),
+        description: Some("PHP upload test".into()),
+        keywords: vec!["test".into(), "php".into()],
+    }
+}
+
+#[fixture]
 fn gpx_list() -> Vec<types::Track> {
     vec![types::Track {
         name: Some("20190626.gpx".into()),
@@ -129,4 +159,36 @@ async fn test_delete(credentials: types::Credentials, gpx_id: u64) {
 
     // THEN
     assert_eq!(actual, ());
+}
+
+#[rstest(gpx_id, case(10))]
+#[actix_rt::test]
+async fn test_get_metadata(
+    credentials: types::Credentials,
+    gpx_id: u64,
+    metadata: types::Metadata,
+    metadata_response: &str,
+) {
+    /*
+    GIVEN an OSM client
+    WHEN calling the get_metadata() function
+    THEN returns the metadata
+    */
+
+    // GIVEN
+    let mock_server = MockServer::start().await;
+
+    Mock::given(method("GET"))
+        .and(path(format!("/api/0.6/gpx/{gpx_id}/details")))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(metadata_response, "application/xml"))
+        .mount(&mock_server)
+        .await;
+
+    let client = Openstreetmap::new(mock_server.uri(), credentials);
+
+    // WHEN
+    let actual = client.gps().get_metadata(gpx_id).await.unwrap();
+
+    // THEN
+    assert_eq!(actual, metadata);
 }

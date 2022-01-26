@@ -9,6 +9,12 @@ struct GpxList {
     tracks: Vec<types::Track>,
 }
 
+#[derive(Debug, PartialEq, Deserialize)]
+struct OsmSingle {
+    #[serde(default, rename = "gpx_file")]
+    metadata: types::Metadata,
+}
+
 pub struct Gps {
     client: Openstreetmap,
 }
@@ -57,10 +63,27 @@ impl Gps {
                 reqwest::Method::DELETE,
                 &url,
                 types::RequestBody::None,
-                RequestOptions::new().with_version(),
+                RequestOptions::new().with_version().with_auth(),
             )
             .await?;
 
         Ok(())
+    }
+
+    pub async fn get_metadata(&self, gpx_id: u64) -> Result<types::Metadata, OpenstreetmapError> {
+        let url = format!("gpx/{gpx_id}/details");
+
+        let metadata = self
+            .client
+            .request::<(), OsmSingle>(
+                reqwest::Method::GET,
+                &url,
+                types::RequestBody::None,
+                RequestOptions::new().with_version(),
+            )
+            .await?
+            .metadata;
+
+        Ok(metadata)
     }
 }
