@@ -6,13 +6,13 @@ use crate::RequestOptions;
 #[derive(Serialize, Deserialize)]
 struct GpxList {
     #[serde(default, rename = "trk")]
-    tracks: Vec<types::Track>,
+    tracks: Vec<types::gpx::Track>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 struct OsmSingle {
     #[serde(default, rename = "gpx_file")]
-    metadata: types::Metadata,
+    metadata: types::gpx::Metadata,
 }
 
 pub struct Gps {
@@ -30,7 +30,7 @@ impl Gps {
         &self,
         bbox: &types::BoundingBox,
         page: Option<u64>,
-    ) -> Result<Vec<types::Track>, OpenstreetmapError> {
+    ) -> Result<Vec<types::gpx::Track>, OpenstreetmapError> {
         let mut url = format!(
             "trackpoints?bbox={},{},{},{}",
             bbox.left, bbox.bottom, bbox.right, bbox.top
@@ -70,7 +70,10 @@ impl Gps {
         Ok(())
     }
 
-    pub async fn get_metadata(&self, gpx_id: u64) -> Result<types::Metadata, OpenstreetmapError> {
+    pub async fn get_metadata(
+        &self,
+        gpx_id: u64,
+    ) -> Result<types::gpx::Metadata, OpenstreetmapError> {
         let url = format!("gpx/{gpx_id}/details");
 
         let metadata = self

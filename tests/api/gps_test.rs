@@ -41,8 +41,8 @@ fn metadata_response() -> &'static str {
 }
 
 #[fixture]
-fn metadata() -> types::Metadata {
-    types::Metadata {
+fn metadata() -> types::gpx::Metadata {
+    types::gpx::Metadata {
         id: 836619,
         name: Some("track.gpx".into()),
         lat: 52.0194,
@@ -57,13 +57,13 @@ fn metadata() -> types::Metadata {
 }
 
 #[fixture]
-fn gpx_list() -> Vec<types::Track> {
-    vec![types::Track {
+fn gpx_list() -> Vec<types::gpx::Track> {
+    vec![types::gpx::Track {
         name: Some("20190626.gpx".into()),
         description: Some("Footpaths near Blackweir Pond, Epping Forest".into()),
         url: Some("https://api.openstreetmap.org/user/John%20Leeming/traces/3031013".into()),
-        segments: vec![types::TrackSegment {
-            points: vec![types::Waypoint {
+        segments: vec![types::gpx::TrackSegment {
+            points: vec![types::gpx::Waypoint {
                 lat: 51.6616100,
                 lon: 0.0534560,
                 time: Some("2019-06-26T14:27:58Z".into()),
@@ -105,7 +105,7 @@ async fn test_get_by_bounding_box(
     bbox: types::BoundingBox,
     page: Option<u64>,
     request_params: Vec<QueryParamExactMatcher>,
-    gpx_list: Vec<types::Track>,
+    gpx_list: Vec<types::gpx::Track>,
 ) {
     /*
     GIVEN an OSM client
@@ -166,7 +166,7 @@ async fn test_delete(credentials: types::Credentials, gpx_id: u64) {
 async fn test_get_metadata(
     credentials: types::Credentials,
     gpx_id: u64,
-    metadata: types::Metadata,
+    metadata: types::gpx::Metadata,
     metadata_response: &str,
 ) {
     /*
