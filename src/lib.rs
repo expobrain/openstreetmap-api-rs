@@ -77,22 +77,22 @@ impl Openstreetmap {
 
     #[inline]
     pub async fn versions(&self) -> Result<Vec<String>, OpenstreetmapError> {
-        Ok(api::versions::Versions::new(self).get().await?)
+        api::versions::Versions::new(self).get().await
     }
 
     #[inline]
     pub async fn capabilities(&self) -> Result<types::CapabilitiesAndPolicy, OpenstreetmapError> {
-        Ok(api::capabilities::Capabilities::new(self).get().await?)
+        api::capabilities::Capabilities::new(self).get().await
     }
 
     #[inline]
     pub async fn map(&self, bbox: &types::BoundingBox) -> Result<types::Map, OpenstreetmapError> {
-        Ok(api::map::Map::new(self).get(bbox).await?)
+        api::map::Map::new(self).get(bbox).await
     }
 
     #[inline]
     pub async fn permissions(&self) -> Result<Vec<types::Permission>, OpenstreetmapError> {
-        Ok(api::permissions::Permissions::new(self).get().await?)
+        api::permissions::Permissions::new(self).get().await
     }
 
     #[inline]
@@ -130,7 +130,7 @@ impl Openstreetmap {
         &self,
         query: types::ChangesetQueryParams,
     ) -> Result<Vec<types::Changeset>, OpenstreetmapError> {
-        Ok(api::changesets::Changesets::new(self).get(query).await?)
+        api::changesets::Changesets::new(self).get(query).await
     }
 
     async fn request<S, D>(
