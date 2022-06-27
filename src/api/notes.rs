@@ -5,7 +5,7 @@ use crate::RequestOptions;
 
 use urlencoding::encode;
 
-#[derive(Debug, Default, PartialEq, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct CommentsRaw {
     #[serde(default, rename = "comment")]
     comments: Vec<types::Comment>,

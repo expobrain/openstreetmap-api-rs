@@ -15,13 +15,13 @@ pub enum RequestBody<S: Serialize> {
     None,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct VersionRange {
     pub minimum: String,
     pub maximum: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Status {
     pub database: String,
     pub api: String,
@@ -40,17 +40,17 @@ pub struct Capabilities {
     pub status: Status,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Blacklist {
     pub regex: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Imagery {
     pub blacklist: Vec<Blacklist>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Policy {
     pub imagery: Imagery,
 }
@@ -69,7 +69,7 @@ pub struct BoundingBox {
     pub top: f64,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize, Clone)]
 pub struct Tag {
     pub k: String,
     pub v: String,
@@ -100,13 +100,13 @@ pub struct Node {
     pub tags: Vec<Tag>,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct NodeRef {
     #[serde(rename = "ref")]
     pub node_id: u64,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Member {
     #[serde(rename = "type")]
     pub member_type: String,
@@ -115,7 +115,7 @@ pub struct Member {
     pub role: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename = "way")]
 pub struct Way {
     pub id: u64,
@@ -131,7 +131,7 @@ pub struct Way {
     pub tags: Vec<Tag>,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename = "relation")]
 pub struct Relation {
     pub id: u64,
@@ -155,12 +155,12 @@ pub struct Map {
     pub relations: Vec<Relation>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Permission {
     pub name: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize, Clone)]
 #[serde(rename = "changeset")]
 pub struct ChangesetCreate {
     version: String,
@@ -179,7 +179,7 @@ impl ChangesetCreate {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct DiscussionComment {
     pub date: String,
     pub uid: u64,
@@ -188,7 +188,7 @@ pub struct DiscussionComment {
     pub text: String,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Discussion {
     #[serde(rename = "comment", default)]
     pub comments: Vec<DiscussionComment>,
@@ -254,7 +254,7 @@ pub struct ChangesetChanges {
     pub deletions: Vec<Deletion>,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename = "node")]
 pub struct DiffNode {
     pub old_id: u64,
@@ -262,7 +262,7 @@ pub struct DiffNode {
     pub new_version: u64,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename = "node")]
 pub struct DiffWay {
     pub old_id: u64,
@@ -270,7 +270,7 @@ pub struct DiffWay {
     pub new_version: u64,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename = "node")]
 pub struct DiffRelation {
     pub old_id: u64,
@@ -278,7 +278,7 @@ pub struct DiffRelation {
     pub new_version: u64,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename = "diffResult")]
 pub struct DiffResult {
     #[serde(rename = "node", default)]
@@ -301,7 +301,7 @@ pub struct ChangesetQueryParams {
     pub changeset_ids: Option<Vec<u64>>,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub struct ElementIdParam {
     pub id: u64,
     pub version: Option<u64>,
@@ -340,30 +340,30 @@ pub struct RelationFull {
     pub nodes: Vec<Node>,
 }
 
-#[derive(Debug, Default, PartialEq, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct ContributorTerms {
     pub agreed: bool,
     #[serde(rename = "pd", default)]
     pub public_domain: bool,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Image {
     #[serde(rename = "href")]
     pub url: String,
 }
 
-#[derive(Debug, Default, PartialEq, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct UserChangesets {
     pub count: u64,
 }
 
-#[derive(Debug, Default, PartialEq, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Traces {
     pub count: u64,
 }
 
-#[derive(Debug, Default, PartialEq, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Block {
     pub count: u64,
     pub active: u64,
@@ -376,7 +376,7 @@ pub struct CoordsView {
     pub zoom: u8,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub struct Messages {
     pub received: u64,
     pub unread: u64,
@@ -401,7 +401,7 @@ pub struct User {
 
 pub type UserPreferences = HashMap<String, String>;
 
-#[derive(Debug, Default, PartialEq, Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Comment {
     #[serde(rename = "uid")]
     pub id: u64,
