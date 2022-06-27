@@ -81,7 +81,7 @@ impl OpenstreetmapNode for types::Relation {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct OsmSingle<E> {
     element: E,
 }
@@ -258,7 +258,7 @@ where
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct OsmList<E> {
     elements: Vec<E>,
 }
