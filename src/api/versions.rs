@@ -5,7 +5,6 @@ use crate::RequestOptions;
 
 #[derive(Debug, Deserialize)]
 struct Version {
-    #[serde(rename = "$value")]
     pub version: String,
 }
 

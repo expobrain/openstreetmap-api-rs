@@ -184,7 +184,6 @@ pub struct DiscussionComment {
     pub date: String,
     pub uid: u64,
     pub user: String,
-    #[serde(rename = "$value")]
     pub text: String,
 }
 
