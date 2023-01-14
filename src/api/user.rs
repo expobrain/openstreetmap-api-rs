@@ -16,7 +16,9 @@ struct OsmList {
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 struct Preference {
+    #[serde(rename = "@k")]
     pub k: String,
+    #[serde(rename = "@v")]
     pub v: String,
 }
 

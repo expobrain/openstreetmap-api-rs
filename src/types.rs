@@ -163,9 +163,11 @@ pub struct Permission {
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize, Clone)]
 #[serde(rename = "changeset")]
 pub struct ChangesetCreate {
+    #[serde(rename = "@version")]
     version: String,
+    #[serde(rename = "@generator")]
     generator: String,
-    #[serde(rename = "tag", default)]
+    #[serde(rename = "@tag", default)]
     tags: Vec<Tag>,
 }
 
@@ -341,6 +343,7 @@ pub struct RelationFull {
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct ContributorTerms {
+    #[serde(rename = "@agreed")]
     pub agreed: bool,
     #[serde(rename = "pd", default)]
     pub public_domain: bool,
@@ -348,23 +351,27 @@ pub struct ContributorTerms {
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Image {
-    #[serde(rename = "href")]
+    #[serde(rename = "@href")]
     pub url: String,
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct UserChangesets {
+    #[serde(rename = "@count")]
     pub count: u64,
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Traces {
+    #[serde(rename = "@count")]
     pub count: u64,
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Block {
+    #[serde(rename = "@count")]
     pub count: u64,
+    #[serde(rename = "@active")]
     pub active: u64,
 }
 
@@ -375,14 +382,14 @@ pub struct CoordsView {
     pub zoom: u8,
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Messages {
     pub received: u64,
     pub unread: u64,
     pub sent: u64,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Deserialize)]
 pub struct User {
     pub id: u64,
     pub display_name: String,
