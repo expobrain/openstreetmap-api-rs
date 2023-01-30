@@ -255,7 +255,7 @@ async fn test_create_comment(
     let client = Openstreetmap::new(mock_server.uri(), credentials);
 
     // WHEN
-    let actual = client.notes().create_comment(note.id, &text).await.unwrap();
+    let actual = client.notes().create_comment(note.id, text).await.unwrap();
 
     // THEN
     assert_eq!(actual, note);
@@ -297,7 +297,7 @@ async fn test_close(
     let client = Openstreetmap::new(mock_server.uri(), credentials);
 
     // WHEN
-    let actual = client.notes().close(note.id, &text).await.unwrap();
+    let actual = client.notes().close(note.id, text).await.unwrap();
 
     // THEN
     assert_eq!(actual, note);
@@ -339,7 +339,7 @@ async fn test_reopen(
     let client = Openstreetmap::new(mock_server.uri(), credentials);
 
     // WHEN
-    let actual = client.notes().reopen(note.id, &text).await.unwrap();
+    let actual = client.notes().reopen(note.id, text).await.unwrap();
 
     // THEN
     assert_eq!(actual, note);

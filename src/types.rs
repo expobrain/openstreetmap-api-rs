@@ -318,7 +318,7 @@ impl fmt::Display for ElementIdParam {
             f,
             "{}{}",
             self.id,
-            self.version.map_or("".to_string(), |v| format!("v{}", v))
+            self.version.map_or("".to_string(), |v| format!("v{v}"))
         )
     }
 }

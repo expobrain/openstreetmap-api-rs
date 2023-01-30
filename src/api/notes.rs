@@ -101,7 +101,7 @@ impl Notes {
     }
 
     pub async fn get(&self, note_id: u64) -> Result<types::Note, OpenstreetmapError> {
-        let url = format!("notes/{}", note_id);
+        let url = format!("notes/{note_id}");
 
         let note = self
             .client

@@ -536,7 +536,7 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
             .map(|v| v.to_string())
             .collect::<Vec<String>>()
             .join(",");
-        let qs = serde_urlencoded::to_string(&[(E::element_name_plural(), element_id_params_raw)])?;
+        let qs = serde_urlencoded::to_string([(E::element_name_plural(), element_id_params_raw)])?;
         let url = format!("{}?{}", E::base_url_plural(), qs);
 
         let elements = self
@@ -575,7 +575,7 @@ impl<E: OpenstreetmapNode + Serialize + DeserializeOwned> Elements<E> {
 
 impl Elements<types::Node> {
     pub async fn ways(&self, node_id: u64) -> Result<Vec<types::Way>, OpenstreetmapError> {
-        let url = format!("node/{}/ways", node_id);
+        let url = format!("node/{node_id}/ways");
         let elements = self
             .client
             .request::<u64, OsmList<types::Way>>(
@@ -593,7 +593,7 @@ impl Elements<types::Node> {
 
 impl Elements<types::Way> {
     pub async fn full(&self, way_id: u64) -> Result<types::WayFull, OpenstreetmapError> {
-        let url = format!("way/{}/full", way_id);
+        let url = format!("way/{way_id}/full");
         let full = self
             .client
             .request::<u64, types::WayFull>(
@@ -610,7 +610,7 @@ impl Elements<types::Way> {
 
 impl Elements<types::Relation> {
     pub async fn full(&self, relation_id: u64) -> Result<types::RelationFull, OpenstreetmapError> {
-        let url = format!("relation/{}/full", relation_id);
+        let url = format!("relation/{relation_id}/full");
         let full = self
             .client
             .request::<u64, types::RelationFull>(
