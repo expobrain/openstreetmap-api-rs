@@ -89,7 +89,7 @@ impl Changeset {
         tags: Vec<types::Tag>,
     ) -> Result<types::Changeset, OpenstreetmapError> {
         let body = types::RequestBody::Xml(OsmUpdate::new(tags));
-        let url = format!("changeset/{}", changeset_id);
+        let url = format!("changeset/{changeset_id}");
         let changeset = self
             .client
             .request::<OsmUpdate, Osm>(
@@ -122,10 +122,10 @@ impl Changeset {
         changeset_id: u64,
         include_discussions: bool,
     ) -> Result<types::Changeset, OpenstreetmapError> {
-        let mut url = format!("changeset/{}", changeset_id);
+        let mut url = format!("changeset/{changeset_id}");
 
         if include_discussions {
-            url = format!("{}?include_discussion=true", url);
+            url = format!("{url}?include_discussion=true");
         }
 
         let changeset = self
@@ -143,7 +143,7 @@ impl Changeset {
     }
 
     pub async fn close(&self, changeset_id: u64) -> Result<(), OpenstreetmapError> {
-        let url = format!("changeset/{}/close", changeset_id);
+        let url = format!("changeset/{changeset_id}/close");
 
         // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
         self.client
@@ -162,7 +162,7 @@ impl Changeset {
         &self,
         changeset_id: u64,
     ) -> Result<types::ChangesetChanges, OpenstreetmapError> {
-        let url = format!("changeset/{}/download", changeset_id);
+        let url = format!("changeset/{changeset_id}/download");
 
         let changes = self
             .client
@@ -182,7 +182,7 @@ impl Changeset {
         changeset_id: u64,
         changeset_change: types::ChangesetChanges,
     ) -> Result<types::DiffResult, OpenstreetmapError> {
-        let url = format!("changeset/{}/upload", changeset_id);
+        let url = format!("changeset/{changeset_id}/upload");
 
         let diffs = self
             .client
@@ -202,7 +202,7 @@ impl Changeset {
         changeset_id: u64,
         comment: &str,
     ) -> Result<(), OpenstreetmapError> {
-        let url = format!("changeset/{}/comment", changeset_id);
+        let url = format!("changeset/{changeset_id}/comment");
         let body = types::RequestBody::Form(Comment::new(comment));
 
         // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
@@ -222,7 +222,7 @@ impl Changeset {
         &self,
         changeset_id: u64,
     ) -> Result<types::Changeset, OpenstreetmapError> {
-        let url = format!("changeset/{}/subscribe", changeset_id);
+        let url = format!("changeset/{changeset_id}/subscribe");
 
         let changeset = self
             .client
@@ -242,7 +242,7 @@ impl Changeset {
         &self,
         changeset_id: u64,
     ) -> Result<types::Changeset, OpenstreetmapError> {
-        let url = format!("changeset/{}/unsubscribe", changeset_id);
+        let url = format!("changeset/{changeset_id}/unsubscribe");
 
         let changeset = self
             .client

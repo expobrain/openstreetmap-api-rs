@@ -56,7 +56,7 @@ async fn test_get(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/user/{}", user_id)))
+        .and(path(format!("/api/0.6/user/{user_id}")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -192,8 +192,7 @@ async fn test_users(
             messages: types::Messages {
                 received: 1,
                 ..Default::default()
-            },
-            ..Default::default()
+            }
         }
     )
 )]
@@ -320,7 +319,7 @@ async fn test_preference(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/user/preferences/{}", key)))
+        .and(path(format!("/api/0.6/user/preferences/{key}")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "text/plain"))
         .mount(&mock_server)
         .await;
@@ -346,7 +345,7 @@ async fn test_preference_update(credentials: types::Credentials, key: &str, valu
     let mock_server = MockServer::start().await;
 
     Mock::given(method("PUT"))
-        .and(path(format!("/api/0.6/user/preferences/{}", key)))
+        .and(path(format!("/api/0.6/user/preferences/{key}")))
         .and(body_string(value))
         .respond_with(ResponseTemplate::new(200))
         .mount(&mock_server)
@@ -370,7 +369,7 @@ async fn test_preference_delete(credentials: types::Credentials, key: &str) {
     let mock_server = MockServer::start().await;
 
     Mock::given(method("DELETE"))
-        .and(path(format!("/api/0.6/user/preferences/{}", key)))
+        .and(path(format!("/api/0.6/user/preferences/{key}")))
         .respond_with(ResponseTemplate::new(200))
         .mount(&mock_server)
         .await;

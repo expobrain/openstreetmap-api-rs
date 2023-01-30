@@ -160,7 +160,7 @@ impl User {
     }
 
     pub async fn get(&self, user_id: u64) -> Result<types::User, OpenstreetmapError> {
-        let url = format!("user/{}", user_id);
+        let url = format!("user/{user_id}");
 
         let user = self
             .client
@@ -183,8 +183,8 @@ impl User {
             .map(|v| v.to_string())
             .collect::<Vec<String>>()
             .join(",");
-        let qs = serde_urlencoded::to_string(&[("users", user_ids_raw)])?;
-        let url = format!("users?{}", qs);
+        let qs = serde_urlencoded::to_string([("users", user_ids_raw)])?;
+        let url = format!("users?{qs}");
 
         let users = self
             .client
@@ -254,7 +254,7 @@ impl User {
     }
 
     pub async fn preference(&self, key: &str) -> Result<String, OpenstreetmapError> {
-        let url = format!("user/preferences/{}", key);
+        let url = format!("user/preferences/{key}");
 
         let user = self
             .client
@@ -274,7 +274,7 @@ impl User {
         key: &str,
         value: &str,
     ) -> Result<(), OpenstreetmapError> {
-        let url = format!("user/preferences/{}", key);
+        let url = format!("user/preferences/{key}");
         let payload = types::RequestBody::RawForm(value.into());
 
         self.client
@@ -290,7 +290,7 @@ impl User {
     }
 
     pub async fn preference_delete(&self, key: &str) -> Result<(), OpenstreetmapError> {
-        let url = format!("user/preferences/{}", key);
+        let url = format!("user/preferences/{key}");
 
         // Use Vec<u8> because `serde` cannot deserialise EOF when using Unit;
         self.client
@@ -396,8 +396,7 @@ mod test {
                 messages: types::Messages {
                     received: 1,
                     ..Default::default()
-                },
-                ..Default::default()
+                }
             }
         )
     )]

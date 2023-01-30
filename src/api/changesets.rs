@@ -14,7 +14,7 @@ where
     let serialisable_value = vector.as_ref().map(|value| {
         value
             .iter()
-            .map(|v| format!("{}", v))
+            .map(|v| format!("{v}"))
             .collect::<Vec<String>>()
             .join(",")
     });
@@ -134,7 +134,6 @@ mod tests {
             open: Some(true),
             closed: Some(false),
             changeset_ids: Some(vec![1, 2, 3]),
-            ..Default::default()
         };
 
         // WHEN
