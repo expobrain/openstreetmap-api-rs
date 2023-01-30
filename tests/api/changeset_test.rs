@@ -277,9 +277,7 @@ async fn test_close(credentials: types::Credentials) {
     let actual = client.changeset().close(10).await.unwrap();
 
     // THEN
-    let expected = ();
-
-    assert_eq!(actual, expected);
+    assert_eq!(actual, ());
 }
 
 #[rstest(response_str, expected,
@@ -467,7 +465,7 @@ async fn test_comment(credentials: types::Credentials, changeset_id: u64, commen
     let mock_server = MockServer::start().await;
 
     Mock::given(method("POST"))
-        .and(path(format!("/api/0.6/changeset/{}/comment", changeset_id)))
+        .and(path(format!("/api/0.6/changeset/{changeset_id}/comment")))
         .respond_with(ResponseTemplate::new(200))
         .mount(&mock_server)
         .await;
@@ -531,10 +529,7 @@ async fn test_subscribe(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("POST"))
-        .and(path(format!(
-            "/api/0.6/changeset/{}/subscribe",
-            changeset_id
-        )))
+        .and(path(format!("/api/0.6/changeset/{changeset_id}/subscribe")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -595,8 +590,7 @@ async fn test_unsubscribe(
 
     Mock::given(method("POST"))
         .and(path(format!(
-            "/api/0.6/changeset/{}/unsubscribe",
-            changeset_id
+            "/api/0.6/changeset/{changeset_id}/unsubscribe"
         )))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)

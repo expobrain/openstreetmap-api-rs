@@ -104,7 +104,7 @@ async fn test_get(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/node/{}", element_id)))
+        .and(path(format!("/api/0.6/node/{element_id}")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -266,7 +266,7 @@ async fn test_history(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/node/{}/history", element_id)))
+        .and(path(format!("/api/0.6/node/{element_id}/history")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -326,7 +326,7 @@ async fn test_version(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/node/{}/{}", element_id, version_id)))
+        .and(path(format!("/api/0.6/node/{element_id}/{version_id}")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -518,7 +518,7 @@ async fn test_relations(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/node/{}/relations", element_id)))
+        .and(path(format!("/api/0.6/node/{element_id}/relations")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -572,7 +572,7 @@ async fn test_ways(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/node/{}/ways", node_id)))
+        .and(path(format!("/api/0.6/node/{node_id}/ways")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -639,7 +639,7 @@ async fn test_way_full(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/way/{}/full", way_id)))
+        .and(path(format!("/api/0.6/way/{way_id}/full")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;
@@ -724,7 +724,7 @@ async fn test_relation_full(
     let mock_server = MockServer::start().await;
 
     Mock::given(method("GET"))
-        .and(path(format!("/api/0.6/relation/{}/full", relation_id)))
+        .and(path(format!("/api/0.6/relation/{relation_id}/full")))
         .respond_with(ResponseTemplate::new(200).set_body_raw(response_str, "application/xml"))
         .mount(&mock_server)
         .await;

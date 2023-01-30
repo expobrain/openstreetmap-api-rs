@@ -185,7 +185,7 @@ fn test_element_id_param_display(element_id_param: ElementIdParam, expected: &st
     THEN the string matches the expectation
     */
     // WHEN
-    let actual = format!("{}", element_id_param);
+    let actual = format!("{element_id_param}");
 
     // THEN
     assert_eq!(actual, expected);
