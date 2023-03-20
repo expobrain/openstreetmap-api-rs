@@ -11,7 +11,7 @@ edition = "2021"
 reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
-quick-xml = { version = "0.26", features = ["serialize"] }
+quick-xml = { version = "0.28", features = ["serialize"] }
 serde_derive = "1.0"
 url = "2.2"
 serde_urlencoded = "0.7"
