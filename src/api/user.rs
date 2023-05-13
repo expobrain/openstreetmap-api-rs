@@ -16,7 +16,9 @@ struct OsmList {
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 struct Preference {
+    #[serde(rename = "@k")]
     pub k: String,
+    #[serde(rename = "@v")]
     pub v: String,
 }
 
@@ -78,12 +80,15 @@ struct Languages {
 
 #[derive(Debug, Default, PartialEq, Deserialize)]
 struct MessageSent {
+    #[serde(rename = "@count")]
     pub count: u64,
 }
 
 #[derive(Debug, Default, PartialEq, Deserialize)]
 struct MessageReceived {
+    #[serde(rename = "@count")]
     pub count: u64,
+    #[serde(rename = "@unread")]
     pub unread: u64,
 }
 
@@ -105,9 +110,13 @@ impl From<MessagesRaw> for types::Messages {
 
 #[derive(Debug, PartialEq, Deserialize)]
 struct UserRaw {
+    #[serde(rename = "@id")]
     pub id: u64,
+    #[serde(rename = "@display_name")]
     pub display_name: String,
+    #[serde(rename = "@account_created")]
     pub account_created: String,
+    #[serde(rename = "description")]
     pub description: Option<String>,
     #[serde(rename = "contributor-terms")]
     pub contributor_terms: types::ContributorTerms,
