@@ -71,7 +71,9 @@ pub struct BoundingBox {
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize, Clone)]
 pub struct Tag {
+    #[serde(rename = "@k")]
     pub k: String,
+    #[serde(rename = "@v")]
     pub v: String,
 }
 
@@ -87,14 +89,23 @@ impl Tag {
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename = "node")]
 pub struct Node {
+    #[serde(rename = "@id")]
     pub id: u64,
+    #[serde(rename = "@visible")]
     pub visible: bool,
+    #[serde(rename = "@version")]
     pub version: u64,
+    #[serde(rename = "@changeset")]
     pub changeset: u64,
+    #[serde(rename = "@timestamp")]
     pub timestamp: String,
+    #[serde(rename = "@user")]
     pub user: Option<String>,
+    #[serde(rename = "@uid")]
     pub uid: Option<u64>,
+    #[serde(rename = "@lat")]
     pub lat: Option<f64>,
+    #[serde(rename = "@lon")]
     pub lon: Option<f64>,
     #[serde(rename = "tag", default)]
     pub tags: Vec<Tag>,
@@ -102,28 +113,36 @@ pub struct Node {
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct NodeRef {
-    #[serde(rename = "ref")]
+    #[serde(rename = "@ref")]
     pub node_id: u64,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Member {
-    #[serde(rename = "type")]
+    #[serde(rename = "@type")]
     pub member_type: String,
-    #[serde(rename = "ref")]
+    #[serde(rename = "@ref")]
     pub node_id: u64,
+    #[serde(rename = "@role")]
     pub role: String,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename = "way")]
 pub struct Way {
+    #[serde(rename = "@id")]
     pub id: u64,
+    #[serde(rename = "@visible")]
     pub visible: bool,
+    #[serde(rename = "@version")]
     pub version: u64,
+    #[serde(rename = "@changeset")]
     pub changeset: u64,
+    #[serde(rename = "@timestamp")]
     pub timestamp: String,
+    #[serde(rename = "@user")]
     pub user: String,
+    #[serde(rename = "@uid")]
     pub uid: u64,
     #[serde(rename = "nd", default)]
     pub node_refs: Vec<NodeRef>,
@@ -134,12 +153,19 @@ pub struct Way {
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename = "relation")]
 pub struct Relation {
+    #[serde(rename = "@id")]
     pub id: u64,
+    #[serde(rename = "@visible")]
     pub visible: bool,
+    #[serde(rename = "@version")]
     pub version: u64,
+    #[serde(rename = "@changeset")]
     pub changeset: u64,
+    #[serde(rename = "@timestamp")]
     pub timestamp: String,
+    #[serde(rename = "@user")]
     pub user: String,
+    #[serde(rename = "@uid")]
     pub uid: u64,
     #[serde(rename = "tag", default)]
     pub tags: Vec<Tag>,
@@ -163,7 +189,9 @@ pub struct Permission {
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize, Clone)]
 #[serde(rename = "changeset")]
 pub struct ChangesetCreate {
+    #[serde(rename = "@version")]
     version: String,
+    #[serde(rename = "@generator")]
     generator: String,
     #[serde(rename = "tag", default)]
     tags: Vec<Tag>,
@@ -341,37 +369,45 @@ pub struct RelationFull {
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct ContributorTerms {
+    #[serde(rename = "@agreed")]
     pub agreed: bool,
-    #[serde(rename = "pd", default)]
+    #[serde(rename = "@pd", default)]
     pub public_domain: bool,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Image {
-    #[serde(rename = "href")]
+    #[serde(rename = "@href")]
     pub url: String,
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct UserChangesets {
+    #[serde(rename = "@count")]
     pub count: u64,
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Traces {
+    #[serde(rename = "@count")]
     pub count: u64,
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Deserialize)]
 pub struct Block {
+    #[serde(rename = "@count")]
     pub count: u64,
+    #[serde(rename = "@active")]
     pub active: u64,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct CoordsView {
+    #[serde(rename = "@lat")]
     pub lat: f64,
+    #[serde(rename = "@lon")]
     pub lon: f64,
+    #[serde(rename = "@zoom")]
     pub zoom: u8,
 }
 
