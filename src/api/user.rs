@@ -142,7 +142,7 @@ impl From<UserRaw> for types::User {
             languages: value
                 .languages
                 .map(|l| l.lang.into_iter().map(|l| l.lang).collect())
-                .unwrap_or_else(Vec::new),
+                .unwrap_or_default(),
             messages: value.messages.into(),
         }
     }
