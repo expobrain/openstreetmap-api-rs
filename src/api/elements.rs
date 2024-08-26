@@ -4,31 +4,37 @@ use crate::OpenstreetmapError;
 use crate::RequestOptions;
 
 use serde::de::{self, Deserialize, DeserializeOwned, Deserializer};
-use serde::ser::{Serialize, SerializeMap, Serializer};
+use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::fmt;
 use std::marker::PhantomData;
 
 pub trait OpenstreetmapNode {
-    fn base_url() -> String;
-    fn base_url_plural() -> String;
-    fn element_name_plural() -> String;
+    fn base_url() -> &'static str;
+    fn base_url_plural() -> &'static str;
+    fn element_name() -> &'static str;
+    fn element_name_plural() -> &'static str;
     fn id(&self) -> u64;
 }
 
 impl OpenstreetmapNode for types::Node {
     #[inline]
-    fn base_url() -> String {
-        "node/".into()
+    fn base_url() -> &'static str {
+        "node/"
     }
 
     #[inline]
-    fn base_url_plural() -> String {
-        "nodes/".into()
+    fn base_url_plural() -> &'static str {
+        "nodes/"
     }
 
     #[inline]
-    fn element_name_plural() -> String {
-        "nodes".into()
+    fn element_name() -> &'static str {
+        "node"
+    }
+
+    #[inline]
+    fn element_name_plural() -> &'static str {
+        "nodes"
     }
 
     #[inline]
@@ -39,18 +45,23 @@ impl OpenstreetmapNode for types::Node {
 
 impl OpenstreetmapNode for types::Way {
     #[inline]
-    fn base_url() -> String {
-        "way/".into()
+    fn base_url() -> &'static str {
+        "way/"
     }
 
     #[inline]
-    fn base_url_plural() -> String {
-        "ways/".into()
+    fn base_url_plural() -> &'static str {
+        "ways/"
     }
 
     #[inline]
-    fn element_name_plural() -> String {
-        "ways".into()
+    fn element_name() -> &'static str {
+        "way"
+    }
+
+    #[inline]
+    fn element_name_plural() -> &'static str {
+        "ways"
     }
 
     #[inline]
@@ -61,18 +72,23 @@ impl OpenstreetmapNode for types::Way {
 
 impl OpenstreetmapNode for types::Relation {
     #[inline]
-    fn base_url() -> String {
-        "relation/".into()
+    fn base_url() -> &'static str {
+        "relation/"
     }
 
     #[inline]
-    fn base_url_plural() -> String {
-        "relations/".into()
+    fn base_url_plural() -> &'static str {
+        "relations/"
     }
 
     #[inline]
-    fn element_name_plural() -> String {
-        "relations".into()
+    fn element_name() -> &'static str {
+        "relation"
+    }
+
+    #[inline]
+    fn element_name_plural() -> &'static str {
+        "relations"
     }
 
     #[inline]
@@ -100,9 +116,9 @@ where
     where
         S: Serializer,
     {
-        let mut map = serializer.serialize_map(Some(1))?;
-        map.serialize_entry("osm", &self.element)?;
-        map.end()
+        let mut state = serializer.serialize_struct("osm", 1)?;
+        state.serialize_field(E::element_name(), &self.element)?;
+        state.end()
     }
 }
 
@@ -641,7 +657,7 @@ mod test {
         case(types::Way::base_url(), "way/"),
         case(types::Relation::base_url(), "relation/")
     )]
-    fn test_base_url(element_base_url: String, expected: &str) {
+    fn test_base_url(element_base_url: &'static str, expected: &str) {
         /*
         GIVEN an struct implementing OpenstreetmapNode trait
         WHEN calling base_url() method
