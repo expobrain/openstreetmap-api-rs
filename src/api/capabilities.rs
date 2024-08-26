@@ -48,37 +48,45 @@ struct Api {
 
 #[derive(Debug, Deserialize)]
 struct Version {
+    #[serde(rename = "@minimum")]
     pub minimum: String,
+    #[serde(rename = "@maximum")]
     pub maximum: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct Area {
+    #[serde(rename = "@maximum")]
     pub maximum: f64,
 }
 
 #[derive(Debug, Deserialize)]
 struct NoteArea {
+    #[serde(rename = "@maximum")]
     pub maximum: f64,
 }
 
 #[derive(Debug, Deserialize)]
 struct Tracepoints {
+    #[serde(rename = "@per_page")]
     pub per_page: u64,
 }
 
 #[derive(Debug, Deserialize)]
 struct Waynodes {
+    #[serde(rename = "@maximum")]
     pub maximum: u64,
 }
 
 #[derive(Debug, Deserialize)]
 struct Changesets {
+    #[serde(rename = "@maximum_elements")]
     pub maximum_elements: u64,
 }
 
 #[derive(Debug, Deserialize)]
 struct Timeout {
+    #[serde(rename = "@seconds")]
     pub seconds: u64,
 }
 

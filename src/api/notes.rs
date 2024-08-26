@@ -14,7 +14,9 @@ pub struct CommentsRaw {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 pub struct NoteRaw {
     pub id: u64,
+    #[serde(rename = "@lon")]
     pub lon: f64,
+    #[serde(rename = "@lat")]
     pub lat: f64,
     pub url: String,
     pub comment_url: String,
