@@ -5,9 +5,13 @@ use crate::RequestOptions;
 
 #[derive(Debug, Deserialize)]
 struct Bounds {
+    #[serde(rename = "@minlat")]
     pub minlat: f64,
+    #[serde(rename = "@minlon")]
     pub minlon: f64,
+    #[serde(rename = "@maxlat")]
     pub maxlat: f64,
+    #[serde(rename = "@maxlon")]
     pub maxlon: f64,
 }
 

@@ -1,4 +1,4 @@
-use serde::ser::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -23,8 +23,11 @@ pub struct VersionRange {
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Status {
+    #[serde(rename = "@database")]
     pub database: String,
+    #[serde(rename = "@api")]
     pub api: String,
+    #[serde(rename = "@gpx")]
     pub gpx: String,
 }
 
@@ -42,6 +45,7 @@ pub struct Capabilities {
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Blacklist {
+    #[serde(rename = "@regex")]
     pub regex: String,
 }
 
@@ -183,6 +187,7 @@ pub struct Map {
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Permission {
+    #[serde(rename = "@name")]
     pub name: String,
 }
 
@@ -209,8 +214,11 @@ impl ChangesetCreate {
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct DiscussionComment {
+    #[serde(rename = "@date")]
     pub date: String,
+    #[serde(rename = "@uid")]
     pub uid: u64,
+    #[serde(rename = "@user")]
     pub user: String,
     pub text: String,
 }
@@ -223,20 +231,30 @@ pub struct Discussion {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Changeset {
+    #[serde(rename = "@id")]
     pub id: u64,
+    #[serde(rename = "@user")]
     pub user: String,
+    #[serde(rename = "@uid")]
     pub uid: u64,
+    #[serde(rename = "@created_at")]
     pub created_at: String,
+    #[serde(rename = "@closed_at")]
     pub closed_at: Option<String>,
+    #[serde(rename = "@open")]
     pub open: bool,
     pub discussion: Option<Discussion>,
     #[serde(rename = "tag", default)]
     pub tags: Vec<Tag>,
 
     // The bounding box attributes will be missing for an empty changeset
+    #[serde(rename = "@min_lon")]
     pub min_lon: Option<f64>,
+    #[serde(rename = "@min_lat")]
     pub min_lat: Option<f64>,
+    #[serde(rename = "@max_lon")]
     pub max_lon: Option<f64>,
+    #[serde(rename = "@max_lat")]
     pub max_lat: Option<f64>,
 }
 
@@ -284,24 +302,33 @@ pub struct ChangesetChanges {
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename = "node")]
 pub struct DiffNode {
+    #[serde(rename = "@old_id")]
     pub old_id: u64,
+    #[serde(rename = "@new_id")]
     pub new_id: u64,
+    #[serde(rename = "@new_version")]
     pub new_version: u64,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename = "node")]
 pub struct DiffWay {
+    #[serde(rename = "@old_id")]
     pub old_id: u64,
+    #[serde(rename = "@new_id")]
     pub new_id: u64,
+    #[serde(rename = "@new_version")]
     pub new_version: u64,
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
 #[serde(rename = "node")]
 pub struct DiffRelation {
+    #[serde(rename = "@old_id")]
     pub old_id: u64,
+    #[serde(rename = "@new_id")]
     pub new_id: u64,
+    #[serde(rename = "@new_version")]
     pub new_version: u64,
 }
 
